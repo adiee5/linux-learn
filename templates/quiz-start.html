@@ -1,0 +1,26 @@
+{% extends "master.html" %}
+
+{% block title %}Quiz z Obsługi Linuxa{% endblock title %} 
+
+{% block main %}
+    <form action="{{url_for('startquiz')}}" method="post">
+        <h1>Quiz z Obsługi Linuxa</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+        <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <button type="submit" class="btn btn-xlg btn-primary">Rozpocznij Quiz!</button>
+        <div class="form-label">Typy zadań:</div>
+        <div class="form-check">
+            <input type="checkbox" name="filters" id="chkCommand" value="command" class="form-check-input">
+            <label for="chkCommand" class="form-check-label">Komendy</label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" name="filters" id="chkAbc" value="abc" class="form-check-input">
+            <label for="chkAbc" class="form-check-label">Pytania ABC</label>
+        </div>
+    </form>
+{% endblock main %}

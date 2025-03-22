@@ -1,0 +1,12 @@
+{% extends "master.html" %}
+
+{% block title %}Quiz z Obsługi Linuxa{% endblock title %} 
+
+{% block main %}
+    <form action="{{ url_for('quizresults') }}" method="post">
+        <h3>{{question}}</h3>
+        <input type="text" name="command" class="form-control text-bg-dark font-monospace">
+        <input type="hidden" name="task_id" value="{{task_id}}">
+        <button type="submit" class="btn btn-lg btn-success">Yślij</button>
+    </form>
+{% endblock main %}

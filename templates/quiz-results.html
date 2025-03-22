@@ -1,0 +1,39 @@
+{% extends "master.html" %}
+
+{% block title %}Wyniki quizu{% endblock title %}
+
+{% block main %}
+        <script>
+            j=JSON.parse('{{question|safe}}')
+            document.write(`<h1>pytanie: ${j.q}</h1>`)
+            document.write(`<p>Odp: <code>${j.answer[0].command}`)
+            flagbuff=''
+            for (let arg of j.answer[0].args) {
+                if ((arg.argtype!='option' || arg.shname === undefined) && flagbuff.length!=0){
+                    document.write(` -${flagbuff}`)
+                    flagbuff=''
+                }
+                if (arg.argtype=='text'){
+                    document.write(' '+arg.value)
+                }
+                if (arg.argtype=='option'){
+                    if (arg.shname!==undefined){
+                        flagbuff+=arg.shname
+                    }
+                    else document.write(` --${arg.name}`)
+                }
+            }
+            if (flagbuff.length!=0){
+                document.write(` -${flagbuff}`)
+            }
+            document.write("</code><p>")
+        </script>
+        <p>Twa odp: <code>{{command}}</code></p>
+        {% if zdane %}
+        <div class="alert alert-success">Zdane!</div>
+        {% else %}
+        <div class="alert alert-danger">Niezdane...</div>
+        {% endif %}
+        <p><code>{{debug}}</code></p>
+{% endblock main %}
+
