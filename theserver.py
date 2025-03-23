@@ -22,11 +22,38 @@ app.app_context().push()
 def startquiz():
     if request.method == 'POST':
         types=request.form.getlist('filters')
+
         if len(types) <=0:
             flash("Nie podano żadnego typu zadań", "alert-danger")
             return redirect(url_for("startquiz"))
-        task=mongo.db.tasks.find({"atype": {"$in":types[:]}}, {"_id":1, "q":1})[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
+        
+        task=mongo.db.tasks.find({"atype": {"$in":types[:]}})[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
+
+        if task["atype"]=='abc':
+            answers=[]
+            count=0
+            if len(task['answer'])<=2:
+                count=random.randint(1, len(task["answer"]))
+            else:
+                count=random.randint(1, len(task['answer'])//2)
+            temp=task["answer"][:]
+            for _ in range(count):
+                x =random.randrange(len(temp))
+                answers.append(temp[x])
+                del temp[x]
+            
+            temp=task["mock"][:]
+
+            while len(answers)<4 and len(temp)>0:
+                x =random.randrange(len(temp))
+                answers.append(temp[x])
+                del temp[x]
+
+            random.shuffle(answers)
+            return render_template('quiz.html', question=task['q'], task_id=str(task['_id']), answers=answers)
+
         return render_template('quiz.html', question=task['q'], task_id=str(task['_id']))
+    
     return render_template("quiz-start.html")
 
 
