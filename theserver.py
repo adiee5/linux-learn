@@ -26,8 +26,16 @@ def startquiz():
         if len(types) <=0:
             flash("Nie podano żadnego typu zadań", "alert-danger")
             return redirect(url_for("startquiz"))
+        if request.form.get("task_num") in ['0', None]:
+            flash("Nie podano ilości pytań", "alert-danger")
+            return redirect(url_for("startquiz"))
         
-        task=mongo.db.tasks.find({"atype": {"$in":types[:]}})[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
+        #[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
+        
+        task=list(mongo.db.tasks.aggregate([
+            {"$match":{"atype": {"$in":types[:]}}},
+            {"$sample":{"size": 1}}
+            ]))[0]
 
         if task["atype"]=='abc':
             answers=[]
@@ -54,20 +62,18 @@ def startquiz():
 
         return render_template('quiz.html', question=task['q'], task_id=str(task['_id']))
     
-    return render_template("quiz-start.html")
+    count = mongo.db.tasks.count_documents({})
+    enable=True
+    if count==0:
+        enable==False
+        flash("W bazie danych nie ma żadnych zadań!", "alert-danger")
 
+    return render_template("quiz-start.html", enable=enable, count=count)
 
-@app.route("/quiz-results", methods=["POST", "GET"])
-def quizresults():
-    if request.method!='POST':
-        return redirect(url_for("startquiz"))
-
-    task=mongo.db.tasks.find_one({"_id":ObjectId(request.form['task_id'])}, {"_id":0})
-    command=request.form['command'].strip()
-    command=shlex.split(command)
+def checkcmd(command:list[str], answers:list[dict])-> tuple[bool]:
     result=False
     if len(command)!=0:
-        for answer in task["answer"]:
+        for answer in answers:
             c=command[1:]
             if command[0]!=answer["command"]:
                 if command[0]=='sudo' and command[1]==answer["command"]:
@@ -141,8 +147,68 @@ def quizresults():
             if argnum==0 and len(options["long"])==0 and len(options['short'])==0 and len(texts)==0 and len(params)==0:
                 result=True
                 break
+    return (result)
 
-    return render_template('quiz-results.html', question=json.dumps(task), command=request.form['command'].strip(), zdane=result, debug=command)
+def cmd2str(command: dict, multi=False) -> str:
+    string=[]
+    if multi:
+        pass #TODO: multi commands
+    else:
+        string.append(command['command'])
+        flagbuff=''
+        for arg in command["args"]:
+
+            if (arg["argtype"] not in ['option', 'param'] or arg.get("shname") == None) and len(flagbuff)!=0:
+                string.append(f"-{flagbuff}")
+                flagbuff=''
+
+            if arg['argtype'] in ['text', 'file']:
+                string.append(arg["value"])
+
+            if arg["argtype"]=='option':
+                if arg.get("shname")!=None:
+                    flagbuff+=arg["shname"]
+                else:
+                    string.append(f"--{arg['name']}")
+
+            if arg["argtype"]=='param':
+                if arg.get("shname")!=None:
+                    flagbuff+=arg["shname"]
+                    string.append(f"-{flagbuff}")
+                    flagbuff=''
+                else:
+                    string.append(f"--{arg['name']}")
+                string.append(arg['value'])
+
+        if len(flagbuff)!=0:
+            string.append(f"-{flagbuff}")
+            
+    return shlex.join(string)
+
+
+
+@app.route("/quiz-results", methods=["POST", "GET"])
+def quizresults():
+    if request.method!='POST':
+        return redirect(url_for("startquiz"))
+    
+    results: list[dict] = []
+
+    results.append({})
+
+    task=mongo.db.tasks.find_one({"_id":ObjectId(request.form['task_id'])}, {"_id":0})
+    command=request.form['command'].strip()
+    command=list(shlex.shlex(command, None, True, True))
+    result=checkcmd(command, task["answer"])#[0]
+
+    results[0]['q']=task['q']
+    results[0]['user']=request.form['command'].strip()
+    results[0]['result']=result
+    results[0]['answer']=[]
+    for i in task["answer"]:
+        results[0]['answer'].append(cmd2str(i))
+
+    return results #render_template('quiz-results.html', question=json.dumps(task), command=request.form['command'].strip(), zdane=result, debug=command)
 
 @app.route('/resources')
 def resourcespage():
@@ -151,6 +217,11 @@ def resourcespage():
 @app.errorhandler(404)
 def page_404(e):
     return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def page_500(e):
+    import datetime
+    return render_template("err500.html", date=str(datetime.datetime.now())), 500
 
 if __name__=="__main__":
     app.run()
