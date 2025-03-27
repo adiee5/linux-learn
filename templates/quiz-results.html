@@ -4,36 +4,24 @@
 
 {% block main %}
         <script>
-            j=JSON.parse('{{question|safe}}')
-            document.write(`<h1>pytanie: ${j.q}</h1>`)
-            document.write(`<p>Odp: <code>${j.answer[0].command}`)
-            flagbuff=''
-            for (let arg of j.answer[0].args) {
-                if ((arg.argtype!='option' || arg.shname === undefined) && flagbuff.length!=0){
-                    document.write(` -${flagbuff}`)
-                    flagbuff=''
+            task={{results|tojson}}[0]
+            document.write(`<h1>pytanie: ${task.q}</h1>`)
+            document.write(`<p>Odp: `)
+            for (i in task.answer){
+                if (i>0){
+                    document.write(" lub ")
                 }
-                if (arg.argtype=='text'){
-                    document.write(' '+arg.value)
-                }
-                if (arg.argtype=='option'){
-                    if (arg.shname!==undefined){
-                        flagbuff+=arg.shname
-                    }
-                    else document.write(` --${arg.name}`)
-                }
+                document.write(`<code>${task.answer[i]}</code>`)
             }
-            if (flagbuff.length!=0){
-                document.write(` -${flagbuff}`)
+            document.write("<p>")
+            document.write(`<p>Twa odp: <code>${task.user}</code></p>`)
+            if (task.result){
+                document.write('<div class="alert alert-success">Zdane!</div>')
             }
-            document.write("</code><p>")
+            else{
+                document.write('<div class="alert alert-danger">Niezdane...</div>')
+            }
         </script>
-        <p>Twa odp: <code>{{command}}</code></p>
-        {% if zdane %}
-        <div class="alert alert-success">Zdane!</div>
-        {% else %}
-        <div class="alert alert-danger">Niezdane...</div>
-        {% endif %}
         <p><code>{{debug}}</code></p>
 {% endblock main %}
 

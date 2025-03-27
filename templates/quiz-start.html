@@ -3,7 +3,7 @@
 {% block title %}Quiz z Obsługi Linuxa{% endblock title %} 
 
 {% block main %}
-    <h1>Quiz z Obsługi Linuxa</h1>
+    <h1 class="text-center">Quiz z Obsługi Linuxa</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -13,9 +13,13 @@
     {% endif %}
     {% endwith %}
 
-    <div class="row">
-        <form action="{{url_for('startquiz')}}" method="post" class="col-md p-2 border rounded">
-            <button type="submit" class="btn btn-xlg btn-primary"{% if not enable %} disabled{% endif %}>Rozpocznij Quiz!</button>
+    <noscript>
+        <div class="alert alert-warning">Aby móc przejść do rozwiązywania quizów, konieczne jest włączenie funkcji uruchamiania JavaScript w przeglądarce</div>
+    </noscript>
+
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <form action="{{url_for('startquiz')}}" method="post" class="container p-2 border rounded" style="max-width: 30em;">
+            <button type="submit" id="btnStart" class="btn btn-xlg btn-primary" disabled>Rozpocznij Quiz!</button>
             <div class="mb-3">
                 <label for="task_num" class="form-label">Ilość Zadań</label>
                 <input type="number" class="form-control" id="task_num" name="task_num" min="1" max="{{count}}" value="{{16 if count>=16 else count}}">
@@ -30,5 +34,11 @@
                 <label for="chkAbc" class="form-check-label">Pytania ABC</label>
             </div>
         </form>
+        {% if enable %}
+        <script>
+            document.getElementById('btnStart').disabled=false
+        </script>
+        {% endif %}
+        
     </div>
 {% endblock main %}

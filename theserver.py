@@ -10,7 +10,11 @@ cfg = configparser.ConfigParser()
 cfg.read('server.ini')
 
 app.config['SECRET_KEY'] = cfg['general']['SECRET_KEY']
-app.config["MONGO_URI"] = f"mongodb://{cfg['mongodb'].get('ip', 'localhost')}:{cfg['mongodb'].get('port','27017')}/{cfg['mongodb']['db']}"
+
+if cfg['mongodb'].get('url')!=None:
+    app.config["MONGO_URI"] = cfg['mongodb']['url']
+else:
+    app.config["MONGO_URI"] = "mongodb://"+ (f"{cfg['mongodb'].get('login')}:{cfg['mongodb'].get('password')}@" if cfg['mongodb'].get('login')!=None or cfg['mongodb'].get('password')!=None else '') + f"{cfg['mongodb'].get('ip', 'localhost')}:{cfg['mongodb'].get('port','27017')}/{cfg['mongodb']['db']}"
 
 mongo= PyMongo(app)
 
@@ -150,7 +154,7 @@ def checkcmd(command:list[str], answers:list[dict])-> tuple[bool]:
     return (result)
 
 def cmd2str(command: dict, multi=False) -> str:
-    string=[]
+    string: list[str]=[]
     if multi:
         pass #TODO: multi commands
     else:
@@ -182,8 +186,16 @@ def cmd2str(command: dict, multi=False) -> str:
 
         if len(flagbuff)!=0:
             string.append(f"-{flagbuff}")
-            
-    return shlex.join(string)
+
+    ret=''
+    for i in string:
+        
+        if ' ' in i or '"' in i:
+            i= "'"+i.replace("'", "'\"'\"'")+"'"
+        else:
+            i.replace("'", "\"'\"")
+        ret+=' '+i
+    return ret
 
 
 
@@ -195,33 +207,53 @@ def quizresults():
     results: list[dict] = []
 
     results.append({})
+    command=None
 
     task=mongo.db.tasks.find_one({"_id":ObjectId(request.form['task_id'])}, {"_id":0})
-    command=request.form['command'].strip()
-    command=list(shlex.shlex(command, None, True, True))
-    result=checkcmd(command, task["answer"])#[0]
+    if task['atype']=="command":
+        command=request.form['command'].strip()
+        command=list(shlex.shlex(command, None, True, True))
+        result=checkcmd(command, task["answer"])#[0]
 
-    results[0]['q']=task['q']
-    results[0]['user']=request.form['command'].strip()
-    results[0]['result']=result
-    results[0]['answer']=[]
-    for i in task["answer"]:
-        results[0]['answer'].append(cmd2str(i))
+        results[0]['q']=task['q']
+        results[0]['user']=request.form['command'].strip()
+        results[0]['result']=result
+        results[0]['answer']=[]
+        for i in task["answer"]:
+            results[0]['answer'].append(cmd2str(i))
 
-    return results #render_template('quiz-results.html', question=json.dumps(task), command=request.form['command'].strip(), zdane=result, debug=command)
+    elif task['atype']=='abc':
+        results[0]['q']=task['q']
+        results[0]['user']=request.form['answer']
+        result=False
+        results[0]['answer']=[]
+        for i in task['answer']:
+            results[0]['answer'].append(i)
+            if i==request.form['answer']:
+                result=True
+        results[0]['result']=result
+
+    return render_template('quiz-results.html', results=results, debug=command)
+
 
 @app.route('/resources')
 def resourcespage():
     return render_template("resources.html")
 
+errorquotes=[
+    "Chyba pomyliłeś odwagę z odważnikiem, Panie Kolego!",
+    "Masz predyspozycje do bycia strażakiem. Co prawda małe, ale zawsze jakieś!",
+    "Jak nie ma progresu, to oznacza, że jest <i><b>regres</b></i>."
+]
+
 @app.errorhandler(404)
 def page_404(e):
-    return render_template("404.html"), 404
+    return render_template("404.html", quote=random.choice(errorquotes)), 404
 
 @app.errorhandler(500)
 def page_500(e):
     import datetime
-    return render_template("err500.html", date=str(datetime.datetime.now())), 500
+    return render_template("err500.html", date=str(datetime.datetime.now()), quote=random.choice(errorquotes)), 500
 
 if __name__=="__main__":
     app.run()
