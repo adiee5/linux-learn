@@ -1,2 +1,3 @@
 server.ini
 .venv
+__pycache__
