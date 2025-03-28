@@ -3,25 +3,83 @@
 {% block title %}Quiz z Obsługi Linuxa{% endblock title %} 
 
 {% block main %}
-    <form action="{{ url_for('quizresults') }}" method="post">
-        <h3>{{question|safe}}</h3>
-        {% if answers is defined %}
-            <div class="row row-cols-md-2 row-cols-xl-4 g-2">
-                {% for a in answers %}
+    <script>
+        const count={{tasks|length}}
+        //document.write(`<h1>${count}</h1>`)
+        var current = 1
+
+        var results=[]
+        
+        function next(){
+            let result={"task_id":document.getElementById("task_id"+current).value}
+            let command=document.getElementById('command'+current)
+            if (command === null){
+                ans=document.getElementsByName('answer'+current)
+                for(a of ans){
+                    if (a.checked){
+                        result.answer=a.value
+                        break
+                    }
+                }
+            }
+            else{
+                result.command=command.value.trim()
+            }
+            results[current-1]=result
+            if (current===count){
+                response=document.getElementById('response')
+                response.value=JSON.stringify(results)
+                response.parentElement.submit()
+                return
+            }
+            document.getElementById("task"+current).style.display='none'
+            current++
+            document.getElementById("task"+current).style.display=''
+            if (current===count){
+                document.getElementById('Submit').innerText="Zakończ Quiz"
+            }
+            document.getElementById("Prev").disabled=false
+        }
+        function prev(){
+            if (current===count){
+                document.getElementById('Submit').innerText="Następny"
+            }
+            document.getElementById("task"+current).style.display='none'
+            current--
+            document.getElementById("task"+current).style.display=''
+            if (current===1){
+                document.getElementById("Prev").disabled=true
+            }
+        }
+    </script>
+    
+    {% for task in tasks %}
+    <div class="border rounded py-3 px-sm-3 px-1"{% if loop.index0 !=0 %} style="display: none;"{% endif %} id="task{{loop.index}}">
+        <h3>{{task['q']|safe}}</h3>
+        {% if task.get('answers') != None %}
+            <div class="row row-cols-md-2 g-2">
+            {% with i=loop.index %}
+                {% for a in task['answers'] %}
                 <div class="col-md">
-                        <input type="radio" class="btn-check" name="answer" id="answer{{loop.index}}" autocomplete="off" value="{{a}}">
-                        <label class="btn btn-secondary align-self-center" style="width: 100%; height: 100%;" for="answer{{loop.index}}">{{a}}</label>
+                        <input type="radio" class="btn-check" name="answer{{i}}" id="answer{{i}}_{{loop.index}}" autocomplete="off" value="{{a}}">
+                        <label class="btn btn-secondary align-self-center" style="width: 100%; height: 100%;" for="answer{{i}}_{{loop.index}}">{{a}}</label>
                 </div>
                 {% endfor %}
+            {% endwith %}
             </div>
         {% else %}
             <div class="input-group">
                 <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
-                <input type="text" name="command" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
+                <input type="text" id="command{{loop.index}}" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
             </div>
         {% endif %}
-        <input type="hidden" name="task_id" value="{{task_id}}">
-        <br>
-        <button type="submit" class="btn btn-lg btn-success">Yślij</button>
+        <input type="hidden" id="task_id{{loop.index}}" value="{{task['task_id']}}">
+    </div>
+    {% endfor %}
+    <br>
+    <button class="btn btn-lg btn-outline-secondary" id="Prev" onclick="prev()" disabled>Poprzedni</button>
+    <button type="submit" class="btn btn-lg btn-success" id="Submit" onclick="next()">Następny</button>
+    <form action="{{ url_for('quizresults') }}" method="post">
+        <input type="hidden" name="response" id="response">
     </form>
 {% endblock main %}

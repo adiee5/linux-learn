@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, abort, redirect, url_for, flash
-import json, shlex, configparser, random
+from flask import Flask, render_template, request, abort, redirect, url_for, flash, json
+import shlex, configparser, random, hashlib
 from flask_pymongo import PyMongo
 from bson import ObjectId
 
@@ -10,6 +10,8 @@ cfg = configparser.ConfigParser()
 cfg.read('server.ini')
 
 app.config['SECRET_KEY'] = cfg['general']['SECRET_KEY']
+
+admin_passhash = cfg['general'].get('admin_passhash', hashlib.sha256(cfg['general']['SECRET_KEY'].encode()).hexdigest())
 
 if cfg['mongodb'].get('url')!=None:
     app.config["MONGO_URI"] = cfg['mongodb']['url']
@@ -36,35 +38,40 @@ def startquiz():
         
         #[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
         
-        task=list(mongo.db.tasks.aggregate([
+        taskmongo=mongo.db.tasks.aggregate([
             {"$match":{"atype": {"$in":types[:]}}},
-            {"$sample":{"size": 1}}
-            ]))[0]
+            {"$sample":{"size": int(request.form.get('task_num'))}}
+            ])
+        
+        tasks=[]
 
-        if task["atype"]=='abc':
-            answers=[]
-            count=0
-            if len(task['answer'])<=2:
-                count=random.randint(1, len(task["answer"]))
-            else:
-                count=random.randint(1, len(task['answer'])//2)
-            temp=task["answer"][:]
-            for _ in range(count):
-                x =random.randrange(len(temp))
-                answers.append(temp[x])
-                del temp[x]
-            
-            temp=task["mock"][:]
+        for task in taskmongo:
+            doc={"q":task['q'], 'task_id':str(task['_id'])}
+            if task["atype"]=='abc':
+                answers=[]
+                count=0
+                if len(task['answer'])<=2:
+                    count=random.randint(1, len(task["answer"]))
+                else:
+                    count=random.randint(1, len(task['answer'])//2)
+                temp=task["answer"][:]
+                for _ in range(count):
+                    x =random.randrange(len(temp))
+                    answers.append(temp[x])
+                    del temp[x]
+                
+                temp=task["mock"][:]
 
-            while len(answers)<4 and len(temp)>0:
-                x =random.randrange(len(temp))
-                answers.append(temp[x])
-                del temp[x]
+                while len(answers)<4 and len(temp)>0:
+                    x =random.randrange(len(temp))
+                    answers.append(temp[x])
+                    del temp[x]
 
-            random.shuffle(answers)
-            return render_template('quiz.html', question=task['q'], task_id=str(task['_id']), answers=answers)
-
-        return render_template('quiz.html', question=task['q'], task_id=str(task['_id']))
+                random.shuffle(answers)
+                doc["answers"]=answers
+            tasks.append(doc)
+                
+        return render_template('quiz.html', tasks=tasks)
     
     count = mongo.db.tasks.count_documents({})
     enable=True
@@ -166,7 +173,7 @@ def cmd2str(command: dict, multi=False) -> str:
                 string.append(f"-{flagbuff}")
                 flagbuff=''
 
-            if arg['argtype'] in ['text', 'file']:
+            if arg['argtype'] in ['text']:
                 string.append(arg["value"])
 
             if arg["argtype"]=='option':
@@ -188,13 +195,15 @@ def cmd2str(command: dict, multi=False) -> str:
             string.append(f"-{flagbuff}")
 
     ret=''
+    f=True
     for i in string:
         
         if ' ' in i or '"' in i:
             i= "'"+i.replace("'", "'\"'\"'")+"'"
         else:
             i.replace("'", "\"'\"")
-        ret+=' '+i
+        ret+=('' if f else ' ')+i
+        f=False
     return ret
 
 
@@ -203,37 +212,41 @@ def cmd2str(command: dict, multi=False) -> str:
 def quizresults():
     if request.method!='POST':
         return redirect(url_for("startquiz"))
+
+    responses=json.loads(request.form['response'])
     
     results: list[dict] = []
 
-    results.append({})
-    command=None
+    
 
-    task=mongo.db.tasks.find_one({"_id":ObjectId(request.form['task_id'])}, {"_id":0})
-    if task['atype']=="command":
-        command=request.form['command'].strip()
-        command=list(shlex.shlex(command, None, True, True))
-        result=checkcmd(command, task["answer"])#[0]
+    for resp in responses:
+        task=mongo.db.tasks.find_one({"_id":ObjectId(resp['task_id'])}, {"_id":0})
+        r={}
+        if task['atype']=="command":
+            command=resp['command']
+            command=list(shlex.shlex(command, None, True, True))
+            result=checkcmd(command, task["answer"])#[0]
 
-        results[0]['q']=task['q']
-        results[0]['user']=request.form['command'].strip()
-        results[0]['result']=result
-        results[0]['answer']=[]
-        for i in task["answer"]:
-            results[0]['answer'].append(cmd2str(i))
+            r['q']=task['q']
+            r['user']=resp['command']
+            r['result']=result
+            r['answer']=[]
+            for i in task["answer"]:
+                r['answer'].append(cmd2str(i))
 
-    elif task['atype']=='abc':
-        results[0]['q']=task['q']
-        results[0]['user']=request.form['answer']
-        result=False
-        results[0]['answer']=[]
-        for i in task['answer']:
-            results[0]['answer'].append(i)
-            if i==request.form['answer']:
-                result=True
-        results[0]['result']=result
+        elif task['atype']=='abc':
+            r['q']=task['q']
+            r['user']=resp['answer']
+            result=False
+            r['answer']=[]
+            for i in task['answer']:
+                r['answer'].append(i)
+                if i==resp['answer']:
+                    result=True
+            r['result']=result
+        results.append(r)
 
-    return render_template('quiz-results.html', results=results, debug=command)
+    return results #render_template('quiz-results.html', results=results)
 
 
 @app.route('/resources')
@@ -243,7 +256,9 @@ def resourcespage():
 errorquotes=[
     "Chyba pomyliłeś odwagę z odważnikiem, Panie Kolego!",
     "Masz predyspozycje do bycia strażakiem. Co prawda małe, ale zawsze jakieś!",
-    "Jak nie ma progresu, to oznacza, że jest <i><b>regres</b></i>."
+    "Jak nie ma progresu, to oznacza, że jest <i><b>regres</b></i>.",
+    "Zawsze należy inwestować w najlepszy sprzęt.",
+    "Te wkrętarki z firmy Dedra to takie średnie są."
 ]
 
 @app.errorhandler(404)
