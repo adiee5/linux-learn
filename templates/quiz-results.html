@@ -4,24 +4,28 @@
 
 {% block main %}
         <script>
-            task={{results|tojson}}[0]
-            document.write(`<h1>pytanie: ${task.q}</h1>`)
-            document.write(`<p>Odp: `)
-            for (i in task.answer){
-                if (i>0){
-                    document.write(" lub ")
+            tasks={{results|tojson}}
+            for(task of tasks){
+                document.write(`<h1>pytanie: ${task.q}</h1>`)
+                document.write(`<p>Odp: `)
+                for (i in task.answer){
+                    if (i>0){
+                        document.write(" lub ")
+                    }
+                    document.write(`<code>${task.answer[i]}</code>`)
                 }
-                document.write(`<code>${task.answer[i]}</code>`)
-            }
-            document.write("<p>")
-            document.write(`<p>Twa odp: <code>${task.user}</code></p>`)
-            if (task.result){
-                document.write('<div class="alert alert-success">Zdane!</div>')
-            }
-            else{
-                document.write('<div class="alert alert-danger">Niezdane...</div>')
+                document.write("<p>")
+                document.write(`<p>Twa odp: <code>${task.user}</code></p>`)
+                if (task.result){
+                    document.write('<div class="alert alert-success">Zdane!</div>')
+                }
+                else{
+                    document.write('<div class="alert alert-danger">Niezdane...</div>')
+                }
             }
         </script>
-        <p><code>{{debug}}</code></p>
+        {% if contact_mail != None %}
+            <div class="alert alert-info">Uważasz, że dokonałeś poprawnej odpowiedzi? <a href="mailto:{{contact_mail}}?subject=Linux-Ściąga – Uważam, że udzieliłem poprawnej odpowiedzi">Powiadom nas</a> o tym w wiadomości mailowej.</div>
+        {% endif %}
 {% endblock main %}
 

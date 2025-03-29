@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, abort, redirect, url_for, flash, json
-import shlex, configparser, random, hashlib, cmdparse
+import shlex, configparser, random, hashlib
+import cmdparse
 from flask_pymongo import PyMongo
 from bson import ObjectId
 
@@ -119,7 +120,7 @@ def quizresults():
             r['result']=result
         results.append(r)
 
-    return results #render_template('quiz-results.html', results=results)
+    return render_template('quiz-results.html', results=results, contact_mail=cfg['general'].get('contact_mail'))
 
 
 @app.route('/resources')
