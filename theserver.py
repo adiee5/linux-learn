@@ -3,6 +3,7 @@ import shlex, configparser, random, hashlib
 import cmdparse
 from flask_pymongo import PyMongo
 from bson import ObjectId
+from urllib.parse import quote as urlquote
 
 app = Flask(__name__)
 
@@ -17,7 +18,7 @@ admin_passhash = cfg['general'].get('admin_passhash', hashlib.sha256(cfg['genera
 if cfg['mongodb'].get('url')!=None:
     app.config["MONGO_URI"] = cfg['mongodb']['url']
 else:
-    app.config["MONGO_URI"] = "mongodb://"+ (f"{cfg['mongodb'].get('login')}:{cfg['mongodb'].get('password')}@" if cfg['mongodb'].get('login')!=None or cfg['mongodb'].get('password')!=None else '') + f"{cfg['mongodb'].get('ip', 'localhost')}:{cfg['mongodb'].get('port','27017')}/{cfg['mongodb']['db']}"
+    app.config["MONGO_URI"] = "mongodb://"+ (f"{urlquote(cfg['mongodb'].get('login'),'')}:{urlquote(cfg['mongodb'].get('password'))}@" if cfg['mongodb'].get('login')!=None or cfg['mongodb'].get('password')!=None else '') + f"{cfg['mongodb'].get('ip', 'localhost')}:{cfg['mongodb'].get('port','27017')}/{cfg['mongodb']['db']}"
 
 mongo= PyMongo(app)
 
@@ -122,6 +123,9 @@ def quizresults():
 
     return render_template('quiz-results.html', results=results, contact_mail=cfg['general'].get('contact_mail'))
 
+@app.route('/admin')
+def adminpanel():
+    return render_template("admin/index.html")
 
 @app.route('/resources')
 def resourcespage():

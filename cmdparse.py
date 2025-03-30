@@ -3,8 +3,8 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
     if len(command)!=0:
         for answer in answers:
             c=command[1:]
-            if command[0]!=answer["command"]:
-                if command[0]=='sudo' and command[1]==answer["command"]:
+            if command[0].lower()!=answer["command"].lower():
+                if command[0].lower()=='sudo' and command[1].lower()==answer["command"].lower():
                     c=c[1:]
                 else:
                     continue
@@ -18,59 +18,59 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                     if arg == '--':
                         accept_options=False
                     elif arg.startswith('--') and accept_options:
-                        options["long"].append(arg[2:])
-                        last_option=(arg[2:], 'long')
+                        options["long"].append(arg[2:].lower())
+                        last_option=(arg[2:].lower(), 'long')
                     elif arg.startswith('-') and len(arg)>1 and accept_options:
                         for i in arg[1:]:
                             options["short"].append(i)
                             last_option=(i, 'short')
                     else:
-                        texts.append(arg)
+                        texts.append(arg.lower())
                         if last_option!=None:
                             if last_option[1]=='short':
-                                params.append({'shname':last_option[0], 'value':arg})
+                                params.append({'shname':last_option[0], 'value':arg.lower()})
                             else:
-                                params.append({'name':last_option[0], 'value':arg})
+                                params.append({'name':last_option[0].lower(), 'value':arg.lower()})
                             last_option=None
 
                 argnum=len(answer['args']) #counts if all of the args in the (correct) answer were fulfiled
 
                 for arg in answer["args"]:
                     if arg['argtype']=='option':
-                        if arg['name'] in options['long'] or arg.get('shname') in options["short"]:
+                        if arg['name'].lower() in options['long'] or arg.get('shname') in options["short"]:
                             argnum-=1
                             try:
                                 if 'shname' in arg.keys():
                                     options["short"].remove(arg['shname'])
-                                options['long'].remove(arg['name'])
+                                options['long'].remove(arg['name'].lower())
                             except ValueError:
                                 pass
                             for i in range(len(params)):
-                                if params[i].get('shname')==arg.get("shname") or params[i].get('name')==arg["name"]:
+                                if params[i].get('shname')==arg.get("shname") or params[i].get('name')==arg["name"].lower():
                                     del params[i]
                                     break
 
                     elif arg['argtype']=='param':
                         for i in range(len(params)):
-                            if (params[i].get('shname')==arg.get("shname") or params[i].get('name')==arg["name"]) and params[i]['value']==arg["value"]:
+                            if (params[i].get('shname')==arg.get("shname") or params[i].get('name')==arg["name"].lower()) and params[i]['value']==arg["value"].lower():
                                 argnum-=1
                                 del params[i]
                                 try:
                                     if 'shname' in arg.keys():
                                         options["short"].remove(arg['shname'])
-                                    options['long'].remove(arg['name'])
+                                    options['long'].remove(arg['name'].lower())
                                 except ValueError:
                                     pass
-                                if arg['value'] in texts:
-                                    texts.remove(arg['value'])
+                                if arg['value'].lower() in texts:
+                                    texts.remove(arg['value'].lower())
                                 break
 
                     elif arg['argtype']=='text':
-                        if arg['value'] in texts:
+                        if arg['value'].lower() in texts:
                             argnum-=1
-                            texts.remove(arg['value'])
+                            texts.remove(arg['value'].lower())
                             for i in range(len(params)):
-                                if params[i]['value']==arg["value"]:
+                                if params[i]['value']==arg["value"].lower():
                                     del params[i]
                                     break
                 if argnum==0 and len(options["long"])==0 and len(options['short'])==0 and len(texts)==0 and len(params)==0:
@@ -82,14 +82,14 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                     div=arg.find("=")
                     if div==-1:
                         return False # dd doesn't allow textual arguments
-                    params[arg[:div]]=arg[div+1:]
+                    params[arg[:div].lower()]=arg[div+1:]
 
                 argnum=len(answer['args']) #counts if all of the args in the (correct) answer were fulfiled
 
                 for opt, value in answer["args"].items():
-                    if params.get(opt) == value:
+                    if params.get(opt.lower()).lower() == value.lower():
                         argnum-=1
-                        del params[opt]
+                        del params[opt.lower()]
                     
                 if argnum==0 and len(params)==0:
                     result=True
