@@ -1,3 +1,39 @@
+def parseposix(c: list[str]) -> tuple[dict[str, list[str]], list[dict], list[str]]:
+    options={"short":[], 'long':[]}
+    params: list[dict]=[]
+    texts=[]
+    last_option=None
+    accept_options=True
+    for arg in c:
+        if arg == '--':
+            accept_options=False
+        elif arg.startswith('--') and accept_options:
+            options["long"].append(arg[2:].lower())
+            last_option=(arg[2:].lower(), 'long')
+        elif arg.startswith('-') and len(arg)>1 and accept_options:
+            for i in arg[1:]:
+                options["short"].append(i)
+                last_option=(i, 'short')
+        else:
+            texts.append(arg.lower())
+            if last_option!=None:
+                if last_option[1]=='short':
+                    params.append({'shname':last_option[0], 'value':arg.lower()})
+                else:
+                    params.append({'name':last_option[0].lower(), 'value':arg.lower()})
+                last_option=None
+    return options, params, texts
+
+def parsedd(c: list[str]) -> dict[str, str] | bool:
+    params ={}
+    for arg in c:
+        div=arg.find("=")
+        if div==-1:
+            return False # dd doesn't allow textual arguments
+        params[arg[:div].lower()]=arg[div+1:]
+    return params
+
+
 def checkcmd(command:list[str], answers:list[dict])-> bool:
     result=False
     if len(command)!=0:
@@ -8,32 +44,11 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                     c=c[1:]
                 else:
                     continue
-            if answer["type"]=='posix':
-                options={"short":[], 'long':[]}
-                params: list[dict]=[]
-                texts=[]
-                last_option=None
-                accept_options=True
-                for arg in c:
-                    if arg == '--':
-                        accept_options=False
-                    elif arg.startswith('--') and accept_options:
-                        options["long"].append(arg[2:].lower())
-                        last_option=(arg[2:].lower(), 'long')
-                    elif arg.startswith('-') and len(arg)>1 and accept_options:
-                        for i in arg[1:]:
-                            options["short"].append(i)
-                            last_option=(i, 'short')
-                    else:
-                        texts.append(arg.lower())
-                        if last_option!=None:
-                            if last_option[1]=='short':
-                                params.append({'shname':last_option[0], 'value':arg.lower()})
-                            else:
-                                params.append({'name':last_option[0].lower(), 'value':arg.lower()})
-                            last_option=None
+            
+            argnum=len(answer['args']) #counts if all of the args in the (correct) answer were fulfiled
 
-                argnum=len(answer['args']) #counts if all of the args in the (correct) answer were fulfiled
+            if answer["type"]=='posix':
+                options, params, texts=parseposix(c)
 
                 for arg in answer["args"]:
                     if arg['argtype']=='option':
@@ -81,14 +96,10 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                     result=True
                     break
             elif answer['type']=='dd':
-                params ={}
-                for arg in c:
-                    div=arg.find("=")
-                    if div==-1:
-                        return False # dd doesn't allow textual arguments
-                    params[arg[:div].lower()]=arg[div+1:]
+                params = parsedd(c)
 
-                argnum=len(answer['args']) #counts if all of the args in the (correct) answer were fulfiled
+                if not params:
+                    return False
 
                 for opt, value in answer["args"].items():
                     if params.get(opt.lower()).lower() == value.lower():
