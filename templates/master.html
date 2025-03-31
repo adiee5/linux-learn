@@ -25,6 +25,12 @@
                         <a href="{{url_for('resourcespage')}}" class="nav-link">Zasoby</a>
                     </li>
                 </ul>
+                {% if admin %}
+                <div>
+                    <a href="{{url_for('admin_panel')}}" class="nav-link">Panel Admin.</a>
+                    <a href="{{url_for('admin_logout')}}" class="btn btn-outline-danger">Wyloguj</a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </nav>

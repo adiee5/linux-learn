@@ -67,6 +67,10 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
 
                     elif arg['argtype']=='text':
                         if arg['value'].lower() in texts:
+                            if arg.get('pos') != None:
+                                pos=texts.index(arg['value'].lower())
+                                if pos!=arg["pos"]:
+                                    continue
                             argnum-=1
                             texts.remove(arg['value'].lower())
                             for i in range(len(params)):

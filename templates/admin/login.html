@@ -1,0 +1,23 @@
+{% extends "master.html" %}
+
+{% block title %}Zaloguj się do panelu administracyjnego{% endblock title %}
+
+{% block main %}
+    <h1 class="text-center">Zaloguj Się</h1>
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <form action="{{url_for('admin_login', next=next)}}" method="post" class="container p-2 border rounded" style="max-width: 30em;">
+            <div class="mb-3">
+                <label for="txPassword" class="form-label">Hasło Administratorskie</label>
+                <input type="password" class="form-control" id="txPassword" name="pass">
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <button type="submit" class="btn btn-lg btn-primary">Zaloguj Się</button>
+        </form>
+    </div>
+{% endblock main %}

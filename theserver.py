@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, abort, redirect, url_for, flash, json
-import shlex, configparser, random, hashlib
+from flask import Flask, render_template as render_template_orig, request, abort, redirect, url_for, flash, json, session
+import shlex, configparser, random, hashlib, functools
 import cmdparse
 from flask_pymongo import PyMongo
 from bson import ObjectId
@@ -24,7 +24,8 @@ mongo= PyMongo(app)
 
 app.app_context().push()
 
-
+def render_template(template_name_or_list, **context) -> str:
+    return render_template_orig(template_name_or_list, admin=session.get('pass')==admin_passhash, **context)
 
 @app.route('/quiz', methods=["POST", "GET"])
 def startquiz():
@@ -123,9 +124,48 @@ def quizresults():
 
     return render_template('quiz-results.html', results=results, contact_mail=cfg['general'].get('contact_mail'))
 
-@app.route('/admin')
-def adminpanel():
-    return render_template("admin/index.html")
+def adminaccess(func):
+    @functools.wraps(func)
+    def glagoli(*az, **buky):
+        if session.get('pass')!=admin_passhash:
+            return redirect(url_for('admin_login', next=(None if request.endpoint=='admin_panel' else request.full_path,'')))
+        return func(*az, **buky)
+    return glagoli
+
+@app.route('/admin/')
+@adminaccess
+def admin_panel():
+    return redirect(url_for("admin_addcmd")) #render_template("admin/index.html")
+
+@app.route('/admin/login', methods=['POST', 'GET'])
+def admin_login():
+    if request.method!='POST':
+        if session.get('pass')==admin_passhash:
+            return redirect(request.args.get('next',url_for('admin_panel')))
+        return render_template('admin/login.html', next=request.args.get('next'))
+    passwd=hashlib.sha256(request.form['pass'].encode()).hexdigest()
+    if passwd != admin_passhash:
+        flash("Niepoprawne Hasło", 'alert-danger')
+        return redirect(url_for('admin_login'))
+    session['pass']=passwd
+    return redirect(request.args.get('next',url_for('admin_panel')))
+
+@app.route('/admin/logout')
+def admin_logout():
+    if "pass" in session:
+        flash('Pomyślnie wylogowano z sesji administratora', 'alert-info')
+        session.pop('pass')
+    return redirect(url_for('admin_login'))
+
+@app.route('/admin/addcmd', methods=["POST", "GET"])
+@adminaccess
+def admin_addcmd():
+    return render_template('admin/addcmd.html')
+
+@app.route("/admin/<path:_>")
+@adminaccess
+def admin_nonexist(_):
+    abort(404)
 
 @app.route('/resources')
 def resourcespage():
