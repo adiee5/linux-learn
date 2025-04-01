@@ -174,12 +174,21 @@ def admin_logout():
 @app.route('/admin/addcmd', methods=["POST", "GET"])
 @adminaccess
 def admin_addcmd():
-    return render_template('admin/addcmd.html')
+    if request.method!='POST':
+        return render_template('admin/addcmd.html')
+    return json.loads(request.form["result"])
 
 @app.route("/admin/<path:_>")
 @adminaccess
 def admin_nonexist(_):
     abort(404)
+
+@app.route("/api/posixparse", methods=["POST"])
+def api_posixparse():
+    command=request.form['command']
+    command=list(shlex.shlex(command, None, True, True))
+    ret = cmdparse.parseposix(command[1:])
+    return {"command":command[0], "options":ret[0], "params":ret[1], 'texts':ret[2]}
 
 @app.route('/resources')
 def resourcespage():

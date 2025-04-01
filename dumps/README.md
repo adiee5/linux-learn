@@ -1,0 +1,1 @@
+This folder contains dumps, that contain example contents of the database. You can manually import them to your mongodb in order to already have example data

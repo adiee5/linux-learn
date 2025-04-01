@@ -3,5 +3,168 @@
 {% block title %}Dodaj zadanie{% endblock title %} 
 
 {% block main %}
+    <script>
+        var atype
+        function switch_atype(){
+            for (i of document.querySelectorAll("[id^='atype_']")){
+                i.style.display='none'
+            }
+            atype=document.getElementById('atype').value
+            document.getElementById('atype_'+atype).style.display=''
+        }
+        function switch_cmdtype(az){
+            let curcmd=az.parentElement.parentElement
+            for (i of curcmd.querySelectorAll("[id^='command_type_']")){
+                i.style.display='none'
+            }
+            curcmd.querySelector(`[id^='command_type_${az.value}']`).style.display=''
+        }
+        function add_text_item(az, type){
+            let neu = document.createElement('template')
+            neu.innerHTML=`<div class="list-group-item">
+                    <div class="input-group">
+                        <input type="text" name="${type}" class="form-control">
+                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                    </div>
+                </div>`
+            az.parentElement.children[1].appendChild(neu.content)
+        }
+        function remitem(az){
+            az.parentElement.parentElement.remove()
+        }
+        function sendabc(){
+            result=document.getElementById('result')
+            let answer=[]
+            let mock=[]
+            for(i of document.getElementsByName('abc_answer')){
+                answer.push(i.value)
+            }
+            for(i of document.getElementsByName('abc_mock')){
+                mock.push(i.value)
+            }
+            result.value=JSON.stringify({
+                'q':document.getElementById('q').value,
+                'atype':atype,
+                'answer':answer,
+                'mock':mock
+            })
+            result.parentElement.submit()
+        }
+        var testcmdin
+        var testcmdout
+        async function testcmd(){
+            if( testcmdin === undefined){
+                testcmdin=document.getElementById("testcmdin")
+                testcmdout=document.getElementById("testcmdout")
+            }
+            encodeURIComponent(testcmdin.value)
+            ret=await fetch("http://localhost:5000/api/posixparse", {
+                method: "POST",
+                body: `command=ls -la /bin`,
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                }
+            }).then((response) => response.text());
+            testcmdout.style.display=''
+            testcmdout.innerText=ret
+        }
+    </script>
     <div class="alert alert-warning">TODO: Dodawanie zadań</div>
+    <h1>Utwórz zadanie</h1>
+    <noscript>
+        <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
+    </noscript>
+    <div class="form-floating mb-3">
+        <input type="text" id="q" class="form-control" placeholder="Polecenie">
+        <label for="q">Polecenie</label>
+    </div>
+    <select class="form-select mb-3" onchange="switch_atype()" id="atype">
+        <option value="null" selected disabled>Wybierz typ zadania</option>
+        <option value="command">Komenda</option>
+        <option value="abc">pytanie ABC</option>
+    </select>
+    <div id="atype_command" style="display: none;">
+        <div class="input-group">
+            <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
+            <input type="text" id="testcmdin" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
+            <button class="btn btn-dark" onclick="testcmd()">Przeparsuj</button>
+        </div>
+        <div class="alert alert-info" id="testcmdout" style="display: none;"></div>
+        <h3>Odpowiedzi</h3>
+        <div class="card" name="command_answer">
+            <div class="card-header">
+                <div class="form-floating">
+                    <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda">
+                    <label for="command_command{}">Komenda</label>
+                </div>
+            </div>
+            <div class="card-body">
+                <select name="type" class="form-select" onchange="switch_cmdtype(this)">
+                    <option value="posix" selected>POSIX</option>
+                    <option value="dd">dd</option>
+                </select>
+            </div>
+            <ul class="list-group list-group-flush" id="command_type_posix{}">
+                <li class="list-group-item">An item</li>
+                <li class="list-group-item">A second item</li>
+                <li class="list-group-item">A third item</li>
+            </ul>
+            <ul class="list-group list-group-flush" id="command_type_dd{}" style="display: none;">
+                <li class="list-group-item">An item</li>
+            </ul>
+        </div>
+        <div class="card" name="command_answer">
+            <div class="card-header">
+                <div class="form-floating">
+                    <input type="text" id="command_command{1}" name="command" class="form-control" placeholder="Komenda">
+                    <label for="command_command{1}">Komenda</label>
+                </div>
+            </div>
+            <div class="card-body">
+                <select name="type" class="form-select" onchange="switch_cmdtype(this)">
+                    <option value="posix" selected>POSIX</option>
+                    <option value="dd">dd</option>
+                </select>
+            </div>
+            <ul class="list-group list-group-flush" id="command_type_posix{1}">
+                <li class="list-group-item">An item</li>
+                <li class="list-group-item">A second item</li>
+                <li class="list-group-item">A third item</li>
+            </ul>
+            <ul class="list-group list-group-flush" id="command_type_dd{1}" style="display: none;">
+                <li class="list-group-item">An item</li>
+            </ul>
+        </div>
+    </div>
+    <div id="atype_abc" style="display: none;">
+        <div class="list-group mb-3">
+            <div class="list-group-item list-group-item-secondary"><h5>Odpowiedzi</h5></div>
+            <div>
+                <div class="list-group-item">
+                    <div class="input-group">
+                        <input type="text" name="abc_answer" class="form-control">
+                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="add_text_item(this, 'abc_answer')" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Odpowiedź</button>
+        </div>
+        <div class="list-group mb-3">
+            <div class="list-group-item list-group-item-secondary"><h5>Fałszywe Odpowiedzi</h5></div>
+            <div>
+                <div class="list-group-item">
+                    <div class="input-group">
+                        <input type="text" name="abc_mock" class="form-control">
+                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="add_text_item(this, 'abc_mock')" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Odpowiedź</button>
+        </div>
+        <button onclick="sendabc()" class="btn btn-primary">Dodaj</button>
+    </div>
+        
+    <form action="{{url_for('admin_addcmd')}}" method="post">
+        <input type="hidden" id="result" name="result">
+    </form>
 {% endblock main %}

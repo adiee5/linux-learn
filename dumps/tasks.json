@@ -1,0 +1,212 @@
+[{
+  "_id": {
+    "$oid": "67db11d6f6d60e811ad80e6d"
+  },
+  "q": "Jak usunąć wszystkie pliki na komputerze?",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "rm",
+      "args": [
+        {
+          "argtype": "option",
+          "name": "no-preserve-root"
+        },
+        {
+          "argtype": "option",
+          "name": "recursive",
+          "shname": "r"
+        },
+        {
+          "argtype": "option",
+          "name": "force",
+          "shname": "f"
+        },
+        {
+          "argtype": "text",
+          "value": "/"
+        }
+      ],
+      "type": "posix"
+    },
+    {
+      "command": "rm",
+      "args": [
+        {
+          "argtype": "option",
+          "name": "no-preserve-root"
+        },
+        {
+          "argtype": "option",
+          "name": "recursive",
+          "shname": "r"
+        },
+        {
+          "argtype": "option",
+          "name": "force",
+          "shname": "f"
+        },
+        {
+          "argtype": "text",
+          "value": "/*"
+        }
+      ],
+      "type": "posix"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67db11d6f6d60e811ad80e6e"
+  },
+  "q": "Jak rozpakować plik egzaminy.tar?",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "tar",
+      "args": [
+        {
+          "argtype": "option",
+          "name": "extract",
+          "shname": "x"
+        },
+        {
+          "argtype": "param",
+          "name": "file",
+          "shname": "f",
+          "value": "egzaminy.tar"
+        }
+      ],
+      "type": "posix"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67db29d8f6d60e811ad80e6f"
+  },
+  "q": "Jak wrócić do katalogu domowego obecnego użytkownika",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "cd",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "~"
+        }
+      ],
+      "type": "posix"
+    },
+    {
+      "command": "cd",
+      "args": [],
+      "type": "posix"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67db4540f6d60e811ad80e70"
+  },
+  "q": "Jak otworzyć plik konfiguracyjny Samby w edytorze tekstu",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "nano",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "/etc/samba/smb.conf"
+        }
+      ],
+      "type": "posix"
+    },
+    {
+      "command": "vim",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "/etc/samba/smb.conf"
+        }
+      ],
+      "type": "posix"
+    },
+    {
+      "command": "vi",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "/etc/samba/smb.conf"
+        }
+      ],
+      "type": "posix"
+    },
+    {
+      "command": "nvim",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "/etc/samba/smb.conf"
+        }
+      ],
+      "type": "posix"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67dec7bc0deaaf9c7bf6f714"
+  },
+  "q": "Co robi komenda <code>cd</code>?",
+  "atype": "abc",
+  "answer": [
+    "Pozwala nam się \"Poruszać\" po systemie plików, zmienia obecny katalog roboczy"
+  ],
+  "mock": [
+    "Wyświetla zawartość obecnego (lub wskazanego) folderu",
+    "Kopiuje pliki",
+    "Uruchamia program z napędu optycznego"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67e884e60deaaf9c7bf6f723"
+  },
+  "q": "Jak zrobić obraz partycji sdb1 o nazwie <code>htmle.img</code>",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "dd",
+      "type": "dd",
+      "args": {
+        "if": "/dev/sdb1",
+        "of": "htmle.img"
+      }
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67ead5300deaaf9c7bf6f725"
+  },
+  "q": "Jak pobrać usługę dhcp w systemie Ubuntu?",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "apt",
+      "type": "posix",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "install",
+          "pos": 0
+        },
+        {
+          "argtype": "text",
+          "value": "isc-dhcp-server"
+        }
+      ]
+    }
+  ]
+}]
