@@ -53,10 +53,10 @@ def startquiz():
             if task["atype"]=='abc':
                 answers=[]
                 count=0
-                if len(task['answer'])<=2:
-                    count=random.randint(1, len(task["answer"]))
+                if len(task['answer'])<2:
+                    count=1
                 else:
-                    count=random.randint(1, len(task['answer'])//2)
+                    count=random.randint(1, 2)
                 temp=task["answer"][:]
                 for _ in range(count):
                     x =random.randrange(len(temp))

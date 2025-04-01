@@ -72,13 +72,14 @@
                 <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
                 <input type="text" id="command{{loop.index}}" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
             </div>
+            <div class="form-text">Podawaj wyłącznie najpotrzebniejsze argumenty potrzebne do spełnienia warunków zadania. Twoje obecne położenie w systemie plików jest nieokreślone.</div>
         {% endif %}
         <input type="hidden" id="task_id{{loop.index}}" value="{{task['task_id']}}">
     </div>
     {% endfor %}
     <br>
     <button class="btn btn-lg btn-outline-secondary" id="Prev" onclick="prev()" disabled>Poprzedni</button>
-    <button type="submit" class="btn btn-lg btn-success" id="Submit" onclick="next()">Następny</button>
+    <button type="submit" class="btn btn-lg btn-success" id="Submit" onclick="next()">{{"Następny" if (tasks|length)>1 else 'Zakończ Quiz'}}</button>
     <form action="{{ url_for('quizresults') }}" method="post">
         <input type="hidden" name="response" id="response">
     </form>
