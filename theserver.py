@@ -128,6 +128,14 @@ def quizresults():
 
     return render_template('quiz-results.html', results=results, victorious=victorious, contact_mail=cfg['general'].get('contact_mail'))
 
+@app.route('/wiki/')
+def wiki_mainpage():
+    return render_template('wiki_index.html')
+
+@app.route('/wiki/cmds/')
+def wiki_commands():
+    return "TODO"
+
 def adminaccess(func):
     @functools.wraps(func)
     def glagoli(*az, **buky):
