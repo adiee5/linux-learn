@@ -14,7 +14,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link">Poznaj Linuxa</a>
                     </li>
@@ -26,8 +26,8 @@
                     </li>
                 </ul>
                 {% if admin %}
-                <div>
-                    <a href="{{url_for('admin_panel')}}" class="nav-link">Panel Admin.</a>
+                <div class="navbar-nav">
+                    <div class="nav-item"><a href="{{url_for('admin_panel')}}" class="nav-link">Panel Admin.</a></div>
                     <a href="{{url_for('admin_logout')}}" class="btn btn-outline-danger">Wyloguj</a>
                 </div>
                 {% endif %}

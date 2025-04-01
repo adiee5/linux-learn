@@ -3,29 +3,30 @@
 {% block title %}Wyniki quizu{% endblock title %}
 
 {% block main %}
-        <script>
-            tasks={{results|tojson}}
-            for(task of tasks){
-                document.write(`<h1>pytanie: ${task.q}</h1>`)
-                document.write(`<p>Odp: `)
-                for (i in task.answer){
-                    if (i>0){
-                        document.write(" lub ")
-                    }
-                    document.write(`<code>${task.answer[i]}</code>`)
-                }
-                document.write("<p>")
-                document.write(`<p>Twa odp: <code>${task.user}</code></p>`)
-                if (task.result){
-                    document.write('<div class="alert alert-success">Zdane!</div>')
-                }
-                else{
-                    document.write('<div class="alert alert-danger">Niezdane...</div>')
-                }
-            }
-        </script>
-        {% if contact_mail != None %}
-            <div class="alert alert-info">Uważasz, że dokonałeś poprawnej odpowiedzi? <a href="mailto:{{contact_mail}}?subject=Linux-Ściąga – Uważam, że udzieliłem poprawnej odpowiedzi">Powiadom nas</a> o tym w wiadomości mailowej.</div>
-        {% endif %}
+    <h1 class="mb-3">Wyniki Quizu</h1>
+    {% for task in results %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title">{{task.q}}</h5>
+            </div>
+            <div class="card-body {{'bg-success-subtle' if task.result else 'bg-danger-subtle'}}">
+                {{task.user}}
+            </div>
+            {% if not task.result %}
+            <div class="card-body bg-body-tertiary">
+                <h6 class="card-subtitle">Poprawne Odpowiedzi:</h6>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for i in task.answer %}
+                <li class="list-group-item">{{i}}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <h2>Wynik: {{victorious}}/{{results|length}} ({{'%0.2f' % ((victorious/(results|length)) *100)}}%)</h2>
+    {% if contact_mail != None %}
+        <div class="alert alert-info">Uważasz, że dokonałeś poprawnej odpowiedzi? <a href="mailto:{{contact_mail}}?subject=Linux-Ściąga – Uważam, że udzieliłem poprawnej odpowiedzi">Powiadom nas</a> o tym w wiadomości mailowej.</div>
+    {% endif %}
 {% endblock main %}
 

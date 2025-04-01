@@ -93,7 +93,7 @@ def quizresults():
     
     results: list[dict] = []
 
-    
+    victorious=0
 
     for resp in responses:
         task=mongo.db.tasks.find_one({"_id":ObjectId(resp['task_id'])}, {"_id":0})
@@ -102,6 +102,9 @@ def quizresults():
             command=resp['command']
             command=list(shlex.shlex(command, None, True, True))
             result=cmdparse.checkcmd(command, task["answer"])#[0]
+
+            if result:
+                victorious+=1
 
             r['q']=task['q']
             r['user']=resp['command']
@@ -118,17 +121,20 @@ def quizresults():
             for i in task['answer']:
                 r['answer'].append(i)
                 if i==resp['answer']:
+                    victorious+=1 if not result else 0
                     result=True
             r['result']=result
         results.append(r)
 
-    return render_template('quiz-results.html', results=results, contact_mail=cfg['general'].get('contact_mail'))
+    return render_template('quiz-results.html', results=results, victorious=victorious, contact_mail=cfg['general'].get('contact_mail'))
 
 def adminaccess(func):
     @functools.wraps(func)
     def glagoli(*az, **buky):
         if session.get('pass')!=admin_passhash:
-            return redirect(url_for('admin_login', next=(None if request.endpoint=='admin_panel' else request.full_path,'')))
+            if request.endpoint=='admin_panel':
+                return redirect(url_for('admin_login'))
+            return redirect(url_for('admin_login', next=request.full_path))
         return func(*az, **buky)
     return glagoli
 
@@ -142,7 +148,7 @@ def admin_login():
     if request.method!='POST':
         if session.get('pass')==admin_passhash:
             return redirect(request.args.get('next',url_for('admin_panel')))
-        return render_template('admin/login.html', next=request.args.get('next'))
+        return render_template('admin/login.html', next=request.args.get('next',url_for('admin_panel')))
     passwd=hashlib.sha256(request.form['pass'].encode()).hexdigest()
     if passwd != admin_passhash:
         flash("Niepoprawne Hasło", 'alert-danger')
