@@ -1,12 +1,12 @@
 {% extends "master.html" %}
 
-{% block title %}404{% endblock title %}
+{% block title %}500{% endblock title %}
 
 {% block main %}
     <h1 class="display-1 text-danger text-center" style="font-size: 10em;">500</h1>
     <h3 class="text-center">Wystąpił błąd serwera</h3>
 
-    <p>Jeśli widzisz ten komunikat, oznacza to, że wystąpił błąd z oprogramowaniem serwisu. Niezwłocznie <a href="https://github.com/adiee5/linux-lingo/issues/new">zgłoś błąd</a> w repozytorium projektu, 
+    <p>Jeśli widzisz ten komunikat, oznacza to, że wystąpił błąd z oprogramowaniem serwisu. Niezwłocznie <a href="{{bugtracker}}" target="_blank">zgłoś błąd</a> w repozytorium projektu, 
         gdzie podasz dokładny opis co zrobiłeś i w jaki sposób pojawił ci się ten błąd. Podaj również adres URL strony (wraz z domeną) oraz dokładną datę wydarzenia: <code>{{date}}</code></p>
 
     <figure class="text-center fixed-bottom">

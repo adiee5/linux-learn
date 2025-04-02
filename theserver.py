@@ -131,13 +131,6 @@ def quizresults():
 
     return render_template('quiz-results.html', results=results, victorious=victorious, contact_mail=cfg['general'].get('contact_mail'))
 
-@app.route('/wiki/')
-def wiki_mainpage():
-    return render_template('wiki_index.html')
-
-@app.route('/wiki/cmds/')
-def wiki_commands():
-    return "TODO"
 
 def adminaccess(func):
     @functools.wraps(func)
@@ -152,7 +145,7 @@ def adminaccess(func):
 @app.route('/admin/')
 @adminaccess
 def admin_panel():
-    return redirect(url_for("admin_addcmd")) #render_template("admin/index.html")
+    return render_template("admin/index.html")
 
 @app.route('/admin/login', methods=['POST', 'GET'])
 def admin_login():
@@ -197,6 +190,10 @@ def api_posixparse():
 def resourcespage():
     return render_template("resources.html")
 
+@app.route('/about')
+def about():
+    return render_template('about.html', contact_mail=cfg['general'].get('contact_mail'), repourl=cfg['general'].get('repourl'))
+
 errorquotes=[
     "Chyba pomyliłeś odwagę z odważnikiem, Panie Kolego!",
     "Masz predyspozycje do bycia strażakiem. Co prawda małe, ale zawsze jakieś!",
@@ -212,7 +209,13 @@ def page_404(e):
 @app.errorhandler(500)
 def page_500(e):
     import datetime
-    return render_template("err500.html", date=str(datetime.datetime.now()), quote=random.choice(errorquotes)), 500
+    bugtracker=cfg['general'].get('bugtracker')
+    if bugtracker==None:
+        bugtracker=cfg['general'].get('repourl', 'https://github.com/adiee5/linux-lingo')
+        if bugtracker[-1]=='/':
+            bugtracker=bugtracker[:-1]
+        bugtracker=bugtracker.join('/issues/new')
+    return render_template("err500.html", date=str(datetime.datetime.now()), bugtracker=bugtracker, quote=random.choice(errorquotes)), 500
 
 if __name__=="__main__":
     app.run()

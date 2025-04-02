@@ -57,10 +57,9 @@
                 testcmdin=document.getElementById("testcmdin")
                 testcmdout=document.getElementById("testcmdout")
             }
-            encodeURIComponent(testcmdin.value)
-            ret=await fetch("http://localhost:5000/api/posixparse", {
+            ret=await fetch("{{url_for('api_posixparse')}}", {
                 method: "POST",
-                body: `command=ls -la /bin`,
+                body: `command=${encodeURIComponent(testcmdin.value)}`,
                 headers: {
                     "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
                 }
