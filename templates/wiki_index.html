@@ -3,13 +3,14 @@
 {% block title %}Poznaj Linuxa{% endblock title %}
 
 {% block main %}
+    <div class="alert alert-info">Sekcja edukacyjna niedostępna. Po informacje o komendach i Linuxie zobacz <a href="{{url_for('resources')}}">Zasoby</a></div>
     <div class="row">
         <div class="col">
-            <div class="card" style="height: 100%;">
+            <div class="card opacity-50" style="height: 100%;">
                 <div class="card-body">
                     <h5 class="card-title text-center">Komendy</h5>
                     <p class="card-text">Informacje o komendach, jak ich używać, co one robią</p>
-                    <a href="url_for('wiki_commands')" class="btn btn-primary">Zobacz</a>
+                    <a class="btn btn-primary">Zobacz</a>
                 </div>
             </div>
         </div>
@@ -18,7 +19,6 @@
                 <div class="card-body">
                     <h5 class="card-title text-center">Dystrybucje</h5>
                     <p class="card-text">Informacje o dystrybucjach, czym się różnią, wady i zalety</p>
-                    <h6 class="card-subtitle mb-3">Comming Soon</h6>
                     <a class="btn btn-primary">Zobacz</a>
                 </div>
             </div>

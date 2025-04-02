@@ -33,6 +33,16 @@
                 <input type="checkbox" name="filters" id="chkAbc" value="abc" class="form-check-input">
                 <label for="chkAbc" class="form-check-label">Pytania ABC</label>
             </div>
+            {% if (categories|length)>0 %}
+            <div class="form-label mt-3">Kategorie:</div>
+            {% for cat in categories %}
+                <div class="form-check">
+                    <input type="checkbox" name="categories" id="chk{{cat['name']}}" value="{{cat['name']}}" class="form-check-input" checked>
+                    <label for="chk{{cat['name']}}" class="form-check-label">{{cat['display']}}</label>
+                </div>
+            {% endfor %}
+            {% endif %}
+            
         </form>
         {% if enable %}
         <script>

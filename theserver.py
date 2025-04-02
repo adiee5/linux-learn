@@ -31,6 +31,7 @@ def render_template(template_name_or_list, **context) -> str:
 def startquiz():
     if request.method == 'POST':
         types=request.form.getlist('filters')
+        categories=request.form.getlist('categories')
 
         if len(types) <=0:
             flash("Nie podano żadnego typu zadań", "alert-danger")
@@ -82,7 +83,9 @@ def startquiz():
         enable==False
         flash("W bazie danych nie ma żadnych zadań!", "alert-danger")
 
-    return render_template("quiz-start.html", enable=enable, count=count)
+    categories=list(mongo.db.categories.find())
+
+    return render_template("quiz-start.html", enable=enable, count=count, categories=categories)
 
 @app.route("/quiz-results", methods=["POST", "GET"])
 def quizresults():

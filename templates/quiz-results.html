@@ -7,7 +7,7 @@
     {% for task in results %}
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="card-title">{{task.q}}</h5>
+                <h5 class="card-title">{{task.q|safe}}</h5>
             </div>
             <div class="card-body {{'bg-success-subtle' if task.result else 'bg-danger-subtle'}}">
                 {{task.user}}

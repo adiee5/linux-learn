@@ -1,0 +1,14 @@
+[{
+  "_id": {
+    "$oid": "67ece42b662e2d8f7d00f8ad"
+  },
+  "name": "server",
+  "display": "Polecenia Serverowe"
+},
+{
+  "_id": {
+    "$oid": "67ece42b662e2d8f7d00f8ae"
+  },
+  "name": "general",
+  "display": "Ogólne"
+}]

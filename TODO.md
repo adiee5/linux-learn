@@ -1,0 +1,4 @@
+- [ ] multi-commands (piping, passing stuff to a file, interpreter commands etc.)
+- [ ] multi-language support
+- [ ] users (?)
+- [ ] educative section (may be useless, we have Arch Wiki for a reason)
