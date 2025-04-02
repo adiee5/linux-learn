@@ -26,7 +26,7 @@
     {% endfor %}
     <h2>Wynik: {{victorious}}/{{results|length}} ({{'%0.2f' % ((victorious/(results|length)) *100)}}%)</h2>
     {% if contact_mail != None %}
-        <div class="alert alert-info">Uważasz, że dokonałeś poprawnej odpowiedzi? <a href="mailto:{{contact_mail}}?subject=Linux-Ściąga – Uważam, że udzieliłem poprawnej odpowiedzi">Powiadom nas</a> o tym w wiadomości mailowej.</div>
+        <div class="alert alert-info">Uważasz, że dokonałeś poprawnej odpowiedzi? <a href="mailto:{{contact_mail}}?subject=Linux-Lingo – Uważam, że udzieliłem poprawnej odpowiedzi">Powiadom nas</a> o tym w wiadomości mailowej.</div>
     {% endif %}
 {% endblock main %}
 
