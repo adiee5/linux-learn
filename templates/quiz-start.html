@@ -26,19 +26,19 @@
             </div>
             <div class="form-label">Typy zadań:</div>
             <div class="form-check">
-                <input type="checkbox" name="filters" id="chkCommand" value="command" class="form-check-input">
-                <label for="chkCommand" class="form-check-label">Komendy</label>
+                <input type="checkbox" name="filters" id="chkcmdCommand" value="command" class="form-check-input">
+                <label for="chkcmdCommand" class="form-check-label">Komendy</label>
             </div>
             <div class="form-check">
-                <input type="checkbox" name="filters" id="chkAbc" value="abc" class="form-check-input">
-                <label for="chkAbc" class="form-check-label">Pytania ABC</label>
+                <input type="checkbox" name="filters" id="chkcmdAbc" value="abc" class="form-check-input">
+                <label for="chkcmdAbc" class="form-check-label">Pytania ABC</label>
             </div>
             {% if (categories|length)>0 %}
             <div class="form-label mt-3">Kategorie:</div>
             {% for cat in categories %}
                 <div class="form-check">
-                    <input type="checkbox" name="categories" id="chk{{cat['name']}}" value="{{cat['name']}}" class="form-check-input" checked>
-                    <label for="chk{{cat['name']}}" class="form-check-label">{{cat['display']}}</label>
+                    <input type="checkbox" name="categories" id="chkcat{{cat['name']}}" value="{{cat['name']}}" class="form-check-input" checked>
+                    <label for="chkcat{{cat['name']}}" class="form-check-label">{{cat['display']}}</label>
                 </div>
             {% endfor %}
             {% endif %}

@@ -3,6 +3,7 @@
     "$oid": "67db11d6f6d60e811ad80e6d"
   },
   "q": "Jak usunąć wszystkie pliki na komputerze?",
+  "category": "general",
   "atype": "command",
   "answer": [
     {
@@ -60,6 +61,7 @@
     "$oid": "67db11d6f6d60e811ad80e6e"
   },
   "q": "Jak rozpakować plik egzaminy.tar?",
+  "category": "general",
   "atype": "command",
   "answer": [
     {
@@ -86,6 +88,7 @@
     "$oid": "67db29d8f6d60e811ad80e6f"
   },
   "q": "Jak wrócić do katalogu domowego obecnego użytkownika",
+  "category": "general",
   "atype": "command",
   "answer": [
     {
@@ -110,6 +113,7 @@
     "$oid": "67db4540f6d60e811ad80e70"
   },
   "q": "Jak otworzyć plik konfiguracyjny Samby w edytorze tekstu",
+  "category": "server",
   "atype": "command",
   "answer": [
     {
@@ -159,6 +163,7 @@
     "$oid": "67dec7bc0deaaf9c7bf6f714"
   },
   "q": "Co robi komenda <code>cd</code>?",
+  "category": "general",
   "atype": "abc",
   "answer": [
     "Pozwala nam się \"Poruszać\" po systemie plików, zmienia obecny katalog roboczy"
@@ -174,6 +179,7 @@
     "$oid": "67e884e60deaaf9c7bf6f723"
   },
   "q": "Jak zrobić obraz partycji sdb1 o nazwie <code>htmle.img</code>",
+  "category": "general",
   "atype": "command",
   "answer": [
     {
@@ -191,6 +197,7 @@
     "$oid": "67ead5300deaaf9c7bf6f725"
   },
   "q": "Jak pobrać usługę dhcp w systemie Ubuntu?",
+  "category": "server",
   "atype": "command",
   "answer": [
     {

@@ -24,6 +24,9 @@ mongo= PyMongo(app)
 
 app.app_context().push()
 
+if mongo.db.categories.count_documents({}, limit=1)==0:
+    mongo.db.categories.create_index(('name', 'text'), unique=True)
+
 def render_template(template_name_or_list, **context) -> str:
     return render_template_orig(template_name_or_list, admin=session.get('pass')==admin_passhash, **context)
 
@@ -32,18 +35,22 @@ def startquiz():
     if request.method == 'POST':
         types=request.form.getlist('filters')
         categories=request.form.getlist('categories')
-
+        fail=False
         if len(types) <=0:
             flash("Nie podano żadnego typu zadań", "alert-danger")
-            return redirect(url_for("startquiz"))
+            fail=True
+        if len(categories) <=0:
+            flash("Nie zaznaczono żadnej kategorii", "alert-danger")
+            fail=True
         if request.form.get("task_num") in ['0', None]:
             flash("Nie podano ilości pytań", "alert-danger")
+            fail=True
+
+        if fail:
             return redirect(url_for("startquiz"))
         
-        #[random.randrange(mongo.db.tasks.count_documents({"atype": {"$in":types[:]}}))]
-        
         taskmongo=mongo.db.tasks.aggregate([
-            {"$match":{"atype": {"$in":types[:]}}},
+            {"$match":{"atype": {"$in":types[:]}, "category": {"$in":categories[:]}}},
             {"$sample":{"size": int(request.form.get('task_num'))}}
             ])
         
@@ -136,6 +143,10 @@ def adminaccess(func):
     @functools.wraps(func)
     def glagoli(*az, **buky):
         if session.get('pass')!=admin_passhash:
+            if request.method!='GET':
+                # If the request is something different than GET, it's likely, that it's some kind of API access,
+                # therefore a propper error code seems more appropriate than a redirect
+                abort(403)
             if request.endpoint=='admin_panel':
                 return redirect(url_for('admin_login'))
             return redirect(url_for('admin_login', next=request.full_path))
@@ -153,7 +164,7 @@ def admin_login():
         if session.get('pass')==admin_passhash:
             return redirect(request.args.get('next',url_for('admin_panel')))
         return render_template('admin/login.html', next=request.args.get('next',url_for('admin_panel')))
-    passwd=hashlib.sha256(request.form['pass'].encode()).hexdigest()
+    passwd=hashlib.sha256(request.form['pass'].strip().encode()).hexdigest()
     if passwd != admin_passhash:
         flash("Niepoprawne Hasło", 'alert-danger')
         return redirect(url_for('admin_login'))
@@ -170,9 +181,23 @@ def admin_logout():
 @app.route('/admin/addcmd', methods=["POST", "GET"])
 @adminaccess
 def admin_addcmd():
+    if mongo.db.categories.count_documents({}, limit=1)==0:
+        flash('Najpierw dodaj chociaż jedną kategorię.', 'alert-danger')
+        return redirect(url_for("admin_panel"))
     if request.method!='POST':
         return render_template('admin/addcmd.html')
     return json.loads(request.form["result"])
+
+@app.route('/admin/categories', methods=["POST", "GET"])
+@adminaccess
+def admin_categories():
+    if request.method=='POST':
+        for x in json.loads(request.form["delete"]):
+            mongo.db.categories.delete_one({"name":x})
+        for x in json.loads(request.form["data"]):
+            mongo.db.categories.update_one({'name':x['name']}, {"$set":{"display":x['display']}}, True)
+        flash("Pomyślnie zapisano zmiany", 'alert-success')
+    return render_template('admin/categories.html', categories=mongo.db.categories.find())
 
 @app.route("/admin/<path:_>")
 @adminaccess

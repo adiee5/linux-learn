@@ -5,4 +5,9 @@
 {% block main %}
     <!--Tu w zamyśle administrator ma do wyboru różne akcje-->
     <div class="alert alert-warning">TODO: Panel administracyjny</div>
+    <div class="row">
+        <div class="col text-center"><a href="{{url_for('admin_addcmd')}}" class="btn btn-primary">Dodaj zadanie</a></div>
+        <div class="col text-center"><a href="{{url_for('admin_categories')}}" class="btn btn-primary">Zarządzaj kategoriami</a></div>
+    </div>
+    
 {% endblock main %}

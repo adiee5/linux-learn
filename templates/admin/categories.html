@@ -1,0 +1,80 @@
+{% extends "master.html" %}
+
+{% block title %}Zarządzaj kategoriami{% endblock title %}
+
+{% block main %}
+    <h1 class="text-center">Kategorie</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+    <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <noscript>
+        <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
+    </noscript>
+    <ul>
+        <li><strong>Prosta nazwa</strong> &ndash; Krótka, najlepiej jednosłowna i po angielsku. Używana wewnętrznie przez aplikację. Jest to swego rodzaju indentyfikator kategorii</li>
+        <li><strong>Nazwa wyświetlana</strong> &ndash; Taka nazwa będzie się wyświetlała użytkownikom</li>
+    </ul>
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Prosta nazwa</th>
+            <th scope="col">Nazwa wyświetlana</th>
+            <th scope="col"><button class="btn btn-success" onclick="save()">Zapisz Zmiany</button></th>
+        </tr>
+    </thead>
+    <tbody id="cattable">
+        {% for cat in categories %}
+            <tr>
+                <td><input type="text" name="name" class="form-control" value="{{cat['name']}}" readonly required></td>
+                <td><input type="text" name="display" class="form-control" value="{{cat['display']}}" required></td>
+                <td><button class="btn btn-outline-danger" onclick="deleterow(this, true)">Usuń</button></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    <button class="btn btn-primary" onclick="addrow()">Dodaj kategorię</button>
+    <form id="postform" action="{{url_for('admin_categories')}}" method="post"><input type="hidden" name="data"><input type="hidden" name="delete"></form>
+    <script>
+        var delete_them=[]
+        var cattable=document.getElementById('cattable')
+        function deleterow(az, important=false) {
+            if (!important || confirm("Napewno chcesz usunąć tę kategorię? Po usunięciu jej będziesz musiał manualnie zmienić wszystkim zadaniom kategorię na istniejącą")){
+                if(important){
+                    delete_them.push(az.parentElement.parentElement.children[0].children[0].value)
+                }
+                az.parentElement.parentElement.remove()
+            }
+        }
+        function addrow(){
+            let temp=document.createElement('template')
+            temp.innerHTML=`<tr>
+                <td><input type="text" name="name" class="form-control" required></td>
+                <td><input type="text" name="display" class="form-control" required></td>
+                <td><button class="btn btn-outline-danger" onclick="deleterow(this)">Usuń</button></td>
+            </tr>`
+            cattable.appendChild(temp.content)
+        }
+        function save(){
+            let form=document.getElementById('postform')
+            let data=[]
+            for(row of cattable.children){
+                let j={}
+                j['name']=row.querySelector('[name="name"]').value
+                j['display']=row.querySelector('[name="display"]').value
+
+                if ( ['', null, undefined].includes(j['name']) || ['', null, undefined].includes(j['display'])){
+                    cattable.classList.add('was-validated')
+                    return
+                }
+                data.push(j)
+            }
+            form[0].value=JSON.stringify(data)
+            form[1].value=JSON.stringify(delete_them)
+            form.submit()
+        }
+    </script>
+{% endblock main %}

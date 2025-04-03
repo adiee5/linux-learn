@@ -24,12 +24,12 @@
             neu.innerHTML=`<div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="${type}" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
                     </div>
                 </div>`
             az.parentElement.children[1].appendChild(neu.content)
         }
-        function remitem(az){
+        function rem_text_item(az){
             az.parentElement.parentElement.remove()
         }
         function sendabc(){
@@ -142,7 +142,7 @@
                 <div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="abc_answer" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
                     </div>
                 </div>
             </div>
@@ -154,7 +154,7 @@
                 <div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="abc_mock" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="remitem(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
                     </div>
                 </div>
             </div>
