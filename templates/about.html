@@ -5,6 +5,9 @@
 {% block main %}
     <h1 class="text-centered">O stronie</h1>
     <p>Oprogramowanie <strong class="fst-italic">Linux-Lingo</strong> zostało stworzone przez <a href="http://adiee5.ct8.pl" target="_blank">Adiee5</a> an licencji <i><abbr title="GNU Public License" class="initialism">GPL</abbr>v3</i>.</p>
+    {% if githash %}
+        <p>Hasz git obecnej instancji: <code>{{githash}}</code></p>
+    {% endif %}
     <p><a href="https://github.com/adiee5/linux-lingo" target="_blank">Repozytorium{{' oryginalnego' if repourl!=None else ''}} projektu</a></p>
     {% if repourl!=None %}
     <p><a href="{{repourl}}" target="_blank">Repozytorium z kodem obecnej instancji</a></p>

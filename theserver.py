@@ -1,6 +1,6 @@
 from flask import Flask, render_template as render_template_orig, request, abort, redirect, url_for, flash, json, session
 import shlex, configparser, random, hashlib, functools
-import cmdparse
+import cmdparse, utils
 from flask_pymongo import PyMongo
 from bson import ObjectId
 from urllib.parse import quote as urlquote
@@ -81,7 +81,11 @@ def startquiz():
                 random.shuffle(answers)
                 doc["answers"]=answers
             tasks.append(doc)
-                
+
+        if len(tasks)==0:
+            flash("Nie ma zadań spełniających podane warunki", "alert-danger")
+            return redirect(url_for("startquiz"))
+
         return render_template('quiz.html', tasks=tasks)
     
     count = mongo.db.tasks.count_documents({})
@@ -217,7 +221,7 @@ def resourcespage():
 
 @app.route('/about')
 def about():
-    return render_template('about.html', contact_mail=cfg['general'].get('contact_mail'), repourl=cfg['general'].get('repourl'))
+    return render_template('about.html', contact_mail=cfg['general'].get('contact_mail'), repourl=cfg['general'].get('repourl'), githash=utils.getgit())
 
 errorquotes=[
     "Chyba pomyliłeś odwagę z odważnikiem, Panie Kolego!",
