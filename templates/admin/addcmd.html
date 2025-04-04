@@ -19,6 +19,7 @@
             }
             curcmd.querySelector(`[id^='command_type_${az.value}']`).style.display=''
         }
+
         function add_text_item(az, type){
             let neu = document.createElement('template')
             neu.innerHTML=`<div class="list-group-item">
@@ -44,11 +45,20 @@
             }
             result.value=JSON.stringify({
                 'q':document.getElementById('q').value,
+                'category':document.getElementById('category').value,
                 'atype':atype,
                 'answer':answer,
                 'mock':mock
             })
             result.parentElement.submit()
+        }
+
+        function add_command(az){
+
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
         var testcmdin
         var testcmdout
@@ -57,15 +67,43 @@
                 testcmdin=document.getElementById("testcmdin")
                 testcmdout=document.getElementById("testcmdout")
             }
-            ret=await fetch("{{url_for('api_posixparse')}}", {
+            let ret=await fetch("{{url_for('api_posixparse')}}", {
                 method: "POST",
                 body: `command=${encodeURIComponent(testcmdin.value)}`,
                 headers: {
                     "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
                 }
-            }).then((response) => response.text());
+            }).then((response) => response.json());
+
+            let options='<ul>'
+            for(i of ret['options']['short']){
+                options+=`<li>Krótka nazwa: <code>${escapeHtml(i)}</code>, Długa nazwa <i>nieznana</i></li>`
+            }
+            for(i of ret['options']['long']){
+                options+=`<li>Krótka nazwa <i>nieznana</i>, Długa nazwa: <code>${escapeHtml(i)}</code></li>`
+            }
+            options+='</ul>'
+
+            let params="<ul>"
+            for (i of ret['params']){
+                params+=`<li>Krótka nazwa${i['shname']!==undefined?`: <code>${escapeHtml(i.shname)}</code>`:" <i>nieznana</i>"}, Długa nazwa${i['name']!==undefined?`: <code>${escapeHtml(i.name)}</code>`:" <i>nieznana</i>"}, Wartość: <code>${escapeHtml(i.value)}</code></li>`
+            }
+            params+='</ul>'
+
+            let texts='<ol start="0">'
+            for (i of ret['texts']){
+                texts+=`<li><code>${escapeHtml(i)}</code></li>`
+            }
+            texts+='</ol>'
+
             testcmdout.style.display=''
-            testcmdout.innerText=ret
+            testcmdout.innerHTML=`<h6>Potencjalne podpowiedzi dotyczące komendy:</h6><ul>
+                <li><strong>Program</strong> &ndash; <code>${escapeHtml(ret['command'])}</code></li>
+                <li><strong>Opcje</strong> (flagi bez parametru): ${options}</li>
+                <li><strong>Flagi z parametrami</strong>: ${params}</li>
+                <li><strong>Argumenty tekstowe</strong> (wraz z numeracją ich położenia): ${texts}</li>
+                </ul>
+                Skorzystaj z dokumentacji programu/komendy, by upewnić się jaka konfiguracja będzie odpowiednia`
         }
     </script>
     <div class="alert alert-warning">TODO: Dodawanie zadań</div>
@@ -76,25 +114,32 @@
     <div class="form-floating mb-3">
         <input type="text" id="q" class="form-control" placeholder="Polecenie">
         <label for="q">Polecenie</label>
+        <div class="form-text">Można używać znaczników HTML.</div>
     </div>
+    <label for="category" class="form-label">Kategoria</label>
+    <select class="form-select mb-3" id="category">
+        {% for cat in categories %}
+        <option value="{{cat['name']}}">{{cat['display']}}</option>
+        {% endfor %}
+    </select>
     <select class="form-select mb-3" onchange="switch_atype()" id="atype">
         <option value="null" selected disabled>Wybierz typ zadania</option>
         <option value="command">Komenda</option>
         <option value="abc">pytanie ABC</option>
     </select>
     <div id="atype_command" style="display: none;">
-        <div class="input-group">
+        <form method="dialog" class="input-group">
             <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
             <input type="text" id="testcmdin" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
             <button class="btn btn-dark" onclick="testcmd()">Przeparsuj</button>
-        </div>
+        </form>
         <div class="alert alert-info" id="testcmdout" style="display: none;"></div>
         <h3>Odpowiedzi</h3>
         <div class="card" name="command_answer">
             <div class="card-header">
                 <div class="form-floating">
                     <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda">
-                    <label for="command_command{}">Komenda</label>
+                    <label for="command_command{}">Program</label>
                 </div>
             </div>
             <div class="card-body">
@@ -109,28 +154,6 @@
                 <li class="list-group-item">A third item</li>
             </ul>
             <ul class="list-group list-group-flush" id="command_type_dd{}" style="display: none;">
-                <li class="list-group-item">An item</li>
-            </ul>
-        </div>
-        <div class="card" name="command_answer">
-            <div class="card-header">
-                <div class="form-floating">
-                    <input type="text" id="command_command{1}" name="command" class="form-control" placeholder="Komenda">
-                    <label for="command_command{1}">Komenda</label>
-                </div>
-            </div>
-            <div class="card-body">
-                <select name="type" class="form-select" onchange="switch_cmdtype(this)">
-                    <option value="posix" selected>POSIX</option>
-                    <option value="dd">dd</option>
-                </select>
-            </div>
-            <ul class="list-group list-group-flush" id="command_type_posix{1}">
-                <li class="list-group-item">An item</li>
-                <li class="list-group-item">A second item</li>
-                <li class="list-group-item">A third item</li>
-            </ul>
-            <ul class="list-group list-group-flush" id="command_type_dd{1}" style="display: none;">
                 <li class="list-group-item">An item</li>
             </ul>
         </div>

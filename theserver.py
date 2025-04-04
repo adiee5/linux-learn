@@ -189,7 +189,7 @@ def admin_addcmd():
         flash('Najpierw dodaj chociaż jedną kategorię.', 'alert-danger')
         return redirect(url_for("admin_panel"))
     if request.method!='POST':
-        return render_template('admin/addcmd.html')
+        return render_template('admin/addcmd.html', categories=mongo.db.categories.find())
     return json.loads(request.form["result"])
 
 @app.route('/admin/categories', methods=["POST", "GET"])
