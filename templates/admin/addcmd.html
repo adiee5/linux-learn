@@ -2,6 +2,10 @@
 
 {% block title %}Dodaj zadanie{% endblock title %} 
 
+{% block head %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock head %}
+
 {% block main %}
     <script>
         var atype
@@ -20,17 +24,16 @@
             curcmd.querySelector(`[id^='command_type_${az.value}']`).style.display=''
         }
         function switch_argtype(az){
-            let curarg=az.parentElement
+            let curarg=az.parentElement.parentElement.parentElement
             let fields={
                 'value':curarg.querySelector("[name='value']").parentElement, 
-                'pos':curarg.querySelector("[name='pos']").parentElement, 
-                'name':curarg.querySelector("[name='name']").parentElement.parentElement, 
-                'shname':curarg.querySelector("[name='shname']").parentElement.parentElement.parentElement
+                'pos':curarg.querySelector("[name='pos']").parentElement.parentElement, 
+                'name':curarg.querySelector("[name='name']").parentElement.parentElement.parentElement
             }
             const lookup={
-                'text':{'value':'',"pos":'', "name":"none", 'shname':'none'},
-                'option':{'value':'none',"pos":'none', "name":"", 'shname':''},
-                'param':{'value':'',"pos":'none', "name":"", 'shname':''}
+                'text':{'value':'',"pos":'', "name":"none"},
+                'option':{'value':'none',"pos":'none', "name":""},
+                'param':{'value':'',"pos":'none', "name":""}
             }
             let sz=Object.entries(lookup[az.value])
             for (i of sz){
@@ -43,13 +46,13 @@
             neu.innerHTML=`<div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="${type}" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>`
             az.parentElement.children[1].appendChild(neu.content)
         }
-        function rem_text_item(az){
-            az.parentElement.parentElement.remove()
+        function remitem(az){
+            az.remove()
         }
         function sendabc(){
             result=document.getElementById('result')
@@ -79,58 +82,179 @@
         function add_posixarg(az) {
             let neu = document.createElement('template')
             neu.innerHTML=`<div class="list-group-item">
-                        <label for="argtype${arg_count}">Typ argumentu</label>
-                        <select name="argtype" id="argtype${arg_count}" class="form-select mb-3" onchange="switch_argtype(this)">
-                            <option value="text" selected>Tekstowy</option>
-                            <option value="option">Opcja</option>
-                            <option value="param">Flaga z parametrem</option>
-                        </select>
-                        <div style="display: none;">
+                    <div class="row mb-3 align-items-end justify-content-between">
+                        <div class="col-sm-6 order-sm-last">
+                            <button class="btn btn-secondary" onclick="moveDown(this.parentElement.parentElement.parentElement)" title="Przemieść w dół"><i class="bi bi-arrow-down"></i></button>
+                            <button class="btn btn-primary" onclick="moveUp(this.parentElement.parentElement.parentElement)" title="Przemieść w górę"><i class="bi bi-arrow-up"></i></button>
+                            <button class="btn btn-danger" onclick="remitem(this.parentElement.parentElement.parentElement)" title="Usuń"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="argtype${arg_count}">Typ argumentu</label>
+                            <select name="argtype" id="argtype${arg_count}" class="form-select" onchange="switch_argtype(this)">
+                                <option value="text" selected>Tekstowy</option>
+                                <option value="option">Opcja</option>
+                                <option value="param">Flaga z parametrem</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" style="display: none;">
+                        <div class="col-7">
                             <label for="arg_name${arg_count}">Długa nazwa</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-text font-monospace">--</div>
-                                <input type="text" name="name" id="arg_name${arg_count}" class="form-control">
+                                <input type="text" name="name" id="arg_name${arg_count}" class="form-control" required>
                             </div>
                         </div>
-                        <div class="row" style="display: none;">
-                            <label for="arg_shname${arg_count}">Krótka nazwa</label>
-                            <div class="col-auto">
-                                <div class="input-group mb-3">
-                                    <div class="input-group-text font-monospace">-</div>
-                                    <input type="text" name="shname" id="arg_shname${arg_count}" class="form-control" maxlength="1">
+                        <div class="col-5">
+                        <label for="arg_shname${arg_count}">Krótka nazwa</label>
+                            <div class="row">
+                                <div class="col-lg-3 col-8 col-sm-6">
+                                    <div class="input-group">
+                                        <div class="input-group-text font-monospace">-</div>
+                                        <input type="text" name="shname" id="arg_shname${arg_count}" class="form-control" maxlength="1">
+                                    </div>
+                                </div>
+                                <div class="col">
                                 </div>
                             </div>
-                            <div class="col-auto form-text">Pozostaw puste, jeśli nie ma.</div>
+                            <div class="form-text">Pozostaw krótką nazwę pustą, jeśli jej nie ma.</div>
                         </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="value" id="arg_value${arg_count}" class="form-control" placeholder="Wartość">
-                            <label for="arg_value${arg_count}">Wartość</label>
-                        </div>
-                        <div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="value" id="arg_value${arg_count}" class="form-control" placeholder="Wartość" required>
+                        <label for="arg_value${arg_count}">Wartość</label>
+                    </div>
+                    <div class="row">
+                        <div class="col">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" name="ispos" id="arg_ispos${arg_count}">
                                 <label for="arg_ispos${arg_count}" class="form-check-label">Wymagaj określonej pozycji</label>
                             </div>
-                            <input type="number" name="pos" id="arg_pos${arg_count}" class="form-control" title="Pozycja" min="0">
                         </div>
-                    </div>`
+                        <div class="col"><input type="number" name="pos" id="arg_pos${arg_count}" class="form-control" title="Pozycja indexowana od zera" min="0"></div>
+                    </div>
+                </div>`
             az.parentElement.children[0].appendChild(neu.content)
             arg_count+=1
         }
         function add_ddarg(az){
             let neu = document.createElement('template')
-            neu.innerHTML=`<div class="list-group-item">
+            neu.innerHTML=`<div class="col position-relative">
                         <div class="input-group">
-                            <input type="text" name="name" class="form-control">
+                            <input type="text" name="name" class="form-control text-end" required>
                             <div class="input-group-text">=</div>
-                            <input type="text" name="value" class="form-control">
+                            <input type="text" name="value" class="form-control" required>
                         </div>
+                        <button class="position-absolute top-0 start-10 translate-middle badge rounded-pill btn btn-danger" onclick="remitem(this.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>`
-            az.parentElement.children[0].appendChild(neu.content)
+            az.parentElement.parentElement.appendChild(neu.content)
+            az.parentElement.nextElementSibling.insertAdjacentElement("afterend", az.parentElement)
         }
 
+        function html2cmd(az){
+            let cmd={}
+            cmd['command']=az.querySelector("[name='command']").value
+            if (cmd.command==='' || cmd.command=== null || cmd.command==undefined){
+                let temp =az.querySelector("[name='command']")
+                temp.scrollIntoView({'block':'center'})
+                az.classList.add('was-validated')
+                return false
+            }
+            cmd['type']=az.querySelector("[name='type']").value
+            if (cmd['type']=='posix'){
+                cmd['args']=[]
+                let args=az.querySelector("[id^='command_type_posix']").children[0]
+                for(arg of args.children){
+                    let ret={}
+                    let argtype=arg.querySelector("[name='argtype']").value
+                    ret['argtype']=argtype
+                    if (['option', 'param'].includes(argtype)){
+                        let name=arg.querySelector("[name='name']")
+                        if (name.value === '' || name.value===null || name.value===undefined){
+                            name.scrollIntoView({'block':'center'})
+                            az.classList.add('was-validated')
+                            return false
+                        }
+                        ret["name"]=name.value
+                        let shname=arg.querySelector("[name='shname']").value
+                        if(!(shname === '' || shname===null || shname===undefined)){
+                            ret['shname']=shname
+                        }
+                    }
+                    if (['text', 'param'].includes(argtype)){
+                        let value=arg.querySelector("[name='value']")
+                        if (value.value === '' || value.value===null || value.value===undefined){
+                            value.scrollIntoView({'block':'center'})
+                            az.classList.add('was-validated')
+                            return false
+                        }
+                        ret["value"]=value.value
+                    }
+                    let pos=arg.querySelector("[name='pos']")
+                    pos.required=false
+                    if (argtype==='text' && arg.querySelector("[name='ispos']").checked){
+                        if (pos.value === '' || pos.value===null || pos.value===undefined){
+                            pos.required=true
+                            pos.scrollIntoView({'block':'center'})
+                            az.classList.add('was-validated')
+                            return false
+                        }
+                        ret["pos"]=parseInt(pos.value)
+                    }
+                    cmd.args.push(ret)
+                }
+            }
+            else if (cmd['type']=='dd'){
+                cmd['args']={}
+                let args=az.querySelector("[id^='command_type_dd']").children[0]
+                for(arg of args.children){
+                    if(!arg.classList.contains('position-relative')) continue
+                    let name=arg.querySelector("[name='name']")
+                    if (name.value === '' || name.value===null || name.value===undefined){
+                        name.scrollIntoView({'block':'center'})
+                        az.classList.add('was-validated')
+                        return false
+                    }
+                    let value=arg.querySelector("[name='value']")
+                    if (value.value === '' || value.value===null || value.value===undefined){
+                        value.scrollIntoView({'block':'center'})
+                        az.classList.add('was-validated')
+                        return false
+                    }
+                    cmd.args[name.value]=value.value
+                }
+            }
+            return cmd
+        }
+
+
+
+        function moveUp(element){
+            let upperSibling = element.previousElementSibling
+            if(upperSibling === null) return
+            upperSibling.insertAdjacentElement("beforebegin", element)
+        }
+        function moveDown(element){
+            let lowerSibling = element.nextElementSibling
+            if(lowerSibling === null) return
+            lowerSibling.insertAdjacentElement("afterend", element)
+        }
+
+        async function display(az){
+            let curcmd=az.parentElement.parentElement.parentElement.parentElement
+            let out=az.parentElement.nextElementSibling.children[0]
+            //alert(JSON.stringify(html2cmd(curcmd)))
+            let ret=await fetch("{{url_for('api_cmd2str')}}", {
+                method: "POST",
+                body: `command=${encodeURIComponent(JSON.stringify(html2cmd(curcmd)))}`,
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                }
+            }).then((response) => response.text());
+            out.value=ret
+        }
         function escapeHtml(str) {
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         }
         var testcmdin
         var testcmdout
@@ -175,7 +299,7 @@
                 <li><strong>Flagi z parametrami</strong>: ${params}</li>
                 <li><strong>Argumenty tekstowe</strong> (wraz z numeracją ich położenia): ${texts}</li>
                 </ul>
-                Skorzystaj z dokumentacji programu/komendy, by upewnić się jaka konfiguracja będzie odpowiednia`
+                Pamiętaj, że część z punktów podanych powyżej wyklucza się nawzajem &ndash; np. <code>-p az</code> może być zinterpretowane albo jako opcja <code>p</code> + argument tekstowy <code>az</code>, albo jako flaga z parametrem. Skorzystaj z dokumentacji programu/komendy, by upewnić się jaka konfiguracja będzie odpowiednia`
         }
     </script>
     <div class="alert alert-warning">TODO: Dodawanie zadań</div>
@@ -184,21 +308,28 @@
         <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
     </noscript>
     <div class="form-floating mb-3">
-        <input type="text" id="q" class="form-control" placeholder="Polecenie">
+        <input type="text" id="q" class="form-control" placeholder="Polecenie" required>
         <label for="q">Polecenie</label>
         <div class="form-text">Można używać znaczników HTML.</div>
     </div>
-    <label for="category" class="form-label">Kategoria</label>
-    <select class="form-select mb-3" id="category">
-        {% for cat in categories %}
-        <option value="{{cat['name']}}">{{cat['display']}}</option>
-        {% endfor %}
-    </select>
-    <select class="form-select mb-3" onchange="switch_atype()" id="atype">
-        <option value="null" selected disabled>Wybierz typ zadania</option>
-        <option value="command">Komenda</option>
-        <option value="abc">pytanie ABC</option>
-    </select>
+    <div class="row">
+        <div class="col-sm order-sm-last">
+            <label for="category" class="form-label">Kategoria</label>
+            <select class="form-select mb-3" id="category">
+                {% for cat in categories %}
+                <option value="{{cat['name']}}">{{cat['display']}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm">
+            <label for="atype" class="form-label">Typ zadania</label>
+            <select class="form-select mb-3" onchange="switch_atype()" id="atype" required>
+                <option value="" selected disabled>Wybierz typ zadania</option>
+                <option value="command">Komenda</option>
+                <option value="abc">pytanie ABC</option>
+            </select>
+        </div>
+    </div>
     <div id="atype_command" style="display: none;">
         <form method="dialog" class="input-group">
             <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
@@ -210,7 +341,7 @@
         <div class="card" name="command_answer">
             <div class="card-header">
                 <div class="form-floating">
-                    <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda">
+                    <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda" required>
                     <label for="command_command{}">Program</label>
                 </div>
             </div>
@@ -225,10 +356,15 @@
                 </div>
                 <button onclick="add_posixarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Agrument</button>
             </div>
-            <div class="list-group list-group-flush" id="command_type_dd{}" style="display: none;">
-                <div>
+            <div class="card-body" id="command_type_dd{}" style="display: none;">
+                <div class="row row-cols-md-3 row-cols-sm-2 row-cols-1 g-3">
+                    <div class="col"><button onclick="add_ddarg(this)" class="btn btn-primary" style="width: 100%;">Dodaj Argument</button></div>
                 </div>
-                <button onclick="add_ddarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Argument</button>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-auto"><button class="btn btn-secondary" onclick="display(this)">Podgląd</button></div> 
+                    <div class="col"><input type="text" class="form-control text-bg-dark font-monospace" readonly></div></div>
             </div>
         </div>
     </div>
@@ -239,7 +375,7 @@
                 <div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="abc_answer" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
             </div>
@@ -251,7 +387,7 @@
                 <div class="list-group-item">
                     <div class="input-group">
                         <input type="text" name="abc_mock" class="form-control">
-                        <button class="btn btn-outline-danger" onclick="rem_text_item(this)">X</button>
+                        <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
             </div>

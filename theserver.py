@@ -213,7 +213,12 @@ def api_posixparse():
     command=request.form['command']
     command=list(shlex.shlex(command, None, True, True))
     ret = cmdparse.parseposix(command[1:])
-    return {"command":command[0], "options":ret[0], "params":ret[1], 'texts':ret[2]}
+    return {"command":command[0] if len(command)>0 else None, "options":ret[0], "params":ret[1], 'texts':ret[2]}
+
+@app.route("/api/cmd2str", methods=["POST"])
+def api_cmd2str():
+    return cmdparse.cmd2str(json.loads(request.form['command']))
+
 
 @app.route('/resources')
 def resourcespage():
