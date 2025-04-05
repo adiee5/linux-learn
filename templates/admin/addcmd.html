@@ -19,6 +19,24 @@
             }
             curcmd.querySelector(`[id^='command_type_${az.value}']`).style.display=''
         }
+        function switch_argtype(az){
+            let curarg=az.parentElement
+            let fields={
+                'value':curarg.querySelector("[name='value']").parentElement, 
+                'pos':curarg.querySelector("[name='pos']").parentElement, 
+                'name':curarg.querySelector("[name='name']").parentElement.parentElement, 
+                'shname':curarg.querySelector("[name='shname']").parentElement.parentElement.parentElement
+            }
+            const lookup={
+                'text':{'value':'',"pos":'', "name":"none", 'shname':'none'},
+                'option':{'value':'none',"pos":'none', "name":"", 'shname':''},
+                'param':{'value':'',"pos":'none', "name":"", 'shname':''}
+            }
+            let sz=Object.entries(lookup[az.value])
+            for (i of sz){
+                fields[i[0]].style.display=i[1]
+            }
+        }
 
         function add_text_item(az, type){
             let neu = document.createElement('template')
@@ -53,8 +71,62 @@
             result.parentElement.submit()
         }
 
+        command_count=0
+        arg_count=0
         function add_command(az){
 
+        }
+        function add_posixarg(az) {
+            let neu = document.createElement('template')
+            neu.innerHTML=`<div class="list-group-item">
+                        <label for="argtype${arg_count}">Typ argumentu</label>
+                        <select name="argtype" id="argtype${arg_count}" class="form-select mb-3" onchange="switch_argtype(this)">
+                            <option value="text" selected>Tekstowy</option>
+                            <option value="option">Opcja</option>
+                            <option value="param">Flaga z parametrem</option>
+                        </select>
+                        <div style="display: none;">
+                            <label for="arg_name${arg_count}">Długa nazwa</label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-text font-monospace">--</div>
+                                <input type="text" name="name" id="arg_name${arg_count}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row" style="display: none;">
+                            <label for="arg_shname${arg_count}">Krótka nazwa</label>
+                            <div class="col-auto">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-text font-monospace">-</div>
+                                    <input type="text" name="shname" id="arg_shname${arg_count}" class="form-control" maxlength="1">
+                                </div>
+                            </div>
+                            <div class="col-auto form-text">Pozostaw puste, jeśli nie ma.</div>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="value" id="arg_value${arg_count}" class="form-control" placeholder="Wartość">
+                            <label for="arg_value${arg_count}">Wartość</label>
+                        </div>
+                        <div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="ispos" id="arg_ispos${arg_count}">
+                                <label for="arg_ispos${arg_count}" class="form-check-label">Wymagaj określonej pozycji</label>
+                            </div>
+                            <input type="number" name="pos" id="arg_pos${arg_count}" class="form-control" title="Pozycja" min="0">
+                        </div>
+                    </div>`
+            az.parentElement.children[0].appendChild(neu.content)
+            arg_count+=1
+        }
+        function add_ddarg(az){
+            let neu = document.createElement('template')
+            neu.innerHTML=`<div class="list-group-item">
+                        <div class="input-group">
+                            <input type="text" name="name" class="form-control">
+                            <div class="input-group-text">=</div>
+                            <input type="text" name="value" class="form-control">
+                        </div>
+                    </div>`
+            az.parentElement.children[0].appendChild(neu.content)
         }
 
         function escapeHtml(str) {
@@ -148,14 +220,16 @@
                     <option value="dd">dd</option>
                 </select>
             </div>
-            <ul class="list-group list-group-flush" id="command_type_posix{}">
-                <li class="list-group-item">An item</li>
-                <li class="list-group-item">A second item</li>
-                <li class="list-group-item">A third item</li>
-            </ul>
-            <ul class="list-group list-group-flush" id="command_type_dd{}" style="display: none;">
-                <li class="list-group-item">An item</li>
-            </ul>
+            <div class="list-group list-group-flush" id="command_type_posix{}">
+                <div>
+                </div>
+                <button onclick="add_posixarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Agrument</button>
+            </div>
+            <div class="list-group list-group-flush" id="command_type_dd{}" style="display: none;">
+                <div>
+                </div>
+                <button onclick="add_ddarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Argument</button>
+            </div>
         </div>
     </div>
     <div id="atype_abc" style="display: none;">
