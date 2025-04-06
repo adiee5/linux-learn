@@ -217,7 +217,14 @@ def api_posixparse():
 
 @app.route("/api/cmd2str", methods=["POST"])
 def api_cmd2str():
-    return cmdparse.cmd2str(json.loads(request.form['command']))
+    command={}
+    try:
+        command=json.loads(request.form['command'])
+    except:
+        abort(400)
+    if type(command)!=dict or type(command.get('command'))!=str or type(command.get('type'))!=str or type(command.get('args'))!=list:
+        abort(400)
+    return cmdparse.cmd2str(command)
 
 
 @app.route('/resources')

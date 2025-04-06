@@ -17,7 +17,7 @@
             document.getElementById('atype_'+atype).style.display=''
         }
         function switch_cmdtype(az){
-            let curcmd=az.parentElement.parentElement
+            let curcmd=az.parentElement.parentElement.parentElement.parentElement
             for (i of curcmd.querySelectorAll("[id^='command_type_']")){
                 i.style.display='none'
             }
@@ -27,7 +27,7 @@
             let curarg=az.parentElement.parentElement.parentElement
             let fields={
                 'value':curarg.querySelector("[name='value']").parentElement, 
-                'pos':curarg.querySelector("[name='pos']").parentElement.parentElement, 
+                'pos':curarg.querySelector("[name='ispos']").parentElement, 
                 'name':curarg.querySelector("[name='name']").parentElement.parentElement.parentElement
             }
             const lookup={
@@ -45,7 +45,7 @@
             let neu = document.createElement('template')
             neu.innerHTML=`<div class="list-group-item">
                     <div class="input-group">
-                        <input type="text" name="${type}" class="form-control">
+                        <input type="text" name="${type}" class="form-control" required>
                         <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>`
@@ -55,18 +55,49 @@
             az.remove()
         }
         function sendabc(){
+            document.getElementById('atype_abc').classList.remove('was-validated')
+            let q = document.getElementById('q')
+            if (q.value===null || q.value===undefined || q.value.trim() === ''){
+                q.scrollIntoView({'block':'center'})
+                q.value=''
+                q.parentElement.classList.add('was-validated')
+                return
+            }
             result=document.getElementById('result')
             let answer=[]
             let mock=[]
             for(i of document.getElementsByName('abc_answer')){
-                answer.push(i.value)
+                if (i.value===null || i.value===undefined || i.value.trim() === ''){
+                    i.scrollIntoView({'block':'center'})
+                    i.value=''
+                    document.getElementById('atype_abc').classList.add('was-validated')
+                    return
+                }
+                answer.push(i.value.trim())
             }
             for(i of document.getElementsByName('abc_mock')){
-                mock.push(i.value)
+                if (i.value===null || i.value===undefined || i.value.trim() === ''){
+                    i.scrollIntoView({'block':'center'})
+                    i.value=''
+                    document.getElementById('atype_abc').classList.add('was-validated')
+                    return
+                }
+                mock.push(i.value.trim())
+            }
+            if(answer.length===0 || mock.length===0){
+                let neu=document.createElement('template')
+                neu.innerHTML=`<div class="alert alert-danger alert-dismissible" role="alert">
+                        <div>
+                            Nie podano żadnych odpowiedzi ani fałszywych odpowiedzi!
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`
+                document.getElementById('alertplace').appendChild(neu.content)
+                return
             }
             result.value=JSON.stringify({
-                'q':document.getElementById('q').value,
-                'category':document.getElementById('category').value,
+                'q':q.value.trim(),
+                'category':document.getElementById('category').value.trim(),
                 'atype':atype,
                 'answer':answer,
                 'mock':mock
@@ -89,7 +120,7 @@
                             <button class="btn btn-danger" onclick="remitem(this.parentElement.parentElement.parentElement)" title="Usuń"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div class="col-sm-6">
-                            <label for="argtype${arg_count}">Typ argumentu</label>
+                            <label for="argtype${arg_count}" class="form-label">Typ argumentu</label>
                             <select name="argtype" id="argtype${arg_count}" class="form-select" onchange="switch_argtype(this)">
                                 <option value="text" selected>Tekstowy</option>
                                 <option value="option">Opcja</option>
@@ -108,7 +139,7 @@
                         <div class="col-5">
                         <label for="arg_shname${arg_count}">Krótka nazwa</label>
                             <div class="row">
-                                <div class="col-lg-3 col-8 col-sm-6">
+                                <div class="col-xl-3 col-9 col-sm-7">
                                     <div class="input-group">
                                         <div class="input-group-text font-monospace">-</div>
                                         <input type="text" name="shname" id="arg_shname${arg_count}" class="form-control" maxlength="1">
@@ -124,14 +155,9 @@
                         <input type="text" name="value" id="arg_value${arg_count}" class="form-control" placeholder="Wartość" required>
                         <label for="arg_value${arg_count}">Wartość</label>
                     </div>
-                    <div class="row">
-                        <div class="col">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="ispos" id="arg_ispos${arg_count}">
-                                <label for="arg_ispos${arg_count}" class="form-check-label">Wymagaj określonej pozycji</label>
-                            </div>
-                        </div>
-                        <div class="col"><input type="number" name="pos" id="arg_pos${arg_count}" class="form-control" title="Pozycja indexowana od zera" min="0"></div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="ispos" id="arg_ispos${arg_count}">
+                        <label for="arg_ispos${arg_count}" class="form-check-label">Wymagaj określonego położenia względem reszty argumentów tekstowych</label>
                     </div>
                 </div>`
             az.parentElement.children[0].appendChild(neu.content)
@@ -153,10 +179,11 @@
 
         function html2cmd(az){
             let cmd={}
-            cmd['command']=az.querySelector("[name='command']").value
-            if (cmd.command==='' || cmd.command=== null || cmd.command==undefined){
+            cmd['command']=az.querySelector("[name='command']").value.trim()
+            if (cmd.command=== null || cmd.command==undefined || cmd.command.trim()===''){
                 let temp =az.querySelector("[name='command']")
                 temp.scrollIntoView({'block':'center'})
+                temp.value=''
                 az.classList.add('was-validated')
                 return false
             }
@@ -164,42 +191,38 @@
             if (cmd['type']=='posix'){
                 cmd['args']=[]
                 let args=az.querySelector("[id^='command_type_posix']").children[0]
+                let textnum=0
                 for(arg of args.children){
                     let ret={}
                     let argtype=arg.querySelector("[name='argtype']").value
                     ret['argtype']=argtype
                     if (['option', 'param'].includes(argtype)){
                         let name=arg.querySelector("[name='name']")
-                        if (name.value === '' || name.value===null || name.value===undefined){
+                        if (name.value===null || name.value===undefined || name.value.trim() === ''){
                             name.scrollIntoView({'block':'center'})
+                            name.value=''
                             az.classList.add('was-validated')
                             return false
                         }
-                        ret["name"]=name.value
+                        ret["name"]=name.value.trim()
                         let shname=arg.querySelector("[name='shname']").value
-                        if(!(shname === '' || shname===null || shname===undefined)){
-                            ret['shname']=shname
+                        if(!(shname===null || shname===undefined || shname.trim() === '')){
+                            ret['shname']=shname.trim()
                         }
                     }
                     if (['text', 'param'].includes(argtype)){
                         let value=arg.querySelector("[name='value']")
-                        if (value.value === '' || value.value===null || value.value===undefined){
+                        if (value.value===null || value.value===undefined || value.value.trim() === ''){
                             value.scrollIntoView({'block':'center'})
+                            value.value=''
                             az.classList.add('was-validated')
                             return false
                         }
-                        ret["value"]=value.value
+                        ret["value"]=value.value.trim()
                     }
-                    let pos=arg.querySelector("[name='pos']")
-                    pos.required=false
-                    if (argtype==='text' && arg.querySelector("[name='ispos']").checked){
-                        if (pos.value === '' || pos.value===null || pos.value===undefined){
-                            pos.required=true
-                            pos.scrollIntoView({'block':'center'})
-                            az.classList.add('was-validated')
-                            return false
-                        }
-                        ret["pos"]=parseInt(pos.value)
+                    if (argtype==='text'){
+                        if (arg.querySelector("[name='ispos']").checked) ret["pos"]=textnum
+                        textnum++
                     }
                     cmd.args.push(ret)
                 }
@@ -210,20 +233,23 @@
                 for(arg of args.children){
                     if(!arg.classList.contains('position-relative')) continue
                     let name=arg.querySelector("[name='name']")
-                    if (name.value === '' || name.value===null || name.value===undefined){
+                    if (name.value===null || name.value===undefined || name.value.trim() === ''){
                         name.scrollIntoView({'block':'center'})
+                        name.value=''
                         az.classList.add('was-validated')
                         return false
                     }
                     let value=arg.querySelector("[name='value']")
-                    if (value.value === '' || value.value===null || value.value===undefined){
+                    if (value.value===null || value.value===undefined || value.value.trim() === ''){
                         value.scrollIntoView({'block':'center'})
+                        value.value=''
                         az.classList.add('was-validated')
                         return false
                     }
-                    cmd.args[name.value]=value.value
+                    cmd.args[name.value.trim()]=value.value.trim()
                 }
             }
+            az.classList.remove('was-validated')
             return cmd
         }
 
@@ -243,10 +269,13 @@
         async function display(az){
             let curcmd=az.parentElement.parentElement.parentElement.parentElement
             let out=az.parentElement.nextElementSibling.children[0]
+            let result = html2cmd(curcmd)
+            if (result===false) return
             //alert(JSON.stringify(html2cmd(curcmd)))
+            //return
             let ret=await fetch("{{url_for('api_cmd2str')}}", {
                 method: "POST",
-                body: `command=${encodeURIComponent(JSON.stringify(html2cmd(curcmd)))}`,
+                body: `command=${encodeURIComponent(JSON.stringify(result))}`,
                 headers: {
                     "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
                 }
@@ -292,21 +321,39 @@
             }
             texts+='</ol>'
 
-            testcmdout.style.display=''
-            testcmdout.innerHTML=`<h6>Potencjalne podpowiedzi dotyczące komendy:</h6><ul>
+            let output=''
+            if (ret.command=='sudo'){
+                let subcmd=['', null, undefined].includes(ret.texts[0])?'komenda':ret.texts[0]
+                output+='<h5 class="badge bg-primary">Notka</h5><p>Nie ma potrzeby uwzględniania <code>sudo</code> w schemacie odpowiedzi &ndash; <code>sudo '+subcmd+'</code> i <code>'+subcmd+'</code> są równoważnymi odpowiedziami dla parsera.'+
+                    ' Jeśli jednak bardzo ci zależy, by wymusić na użytkownikach użycia <code>sudo</code> (nie zalecamy, nie ma po co), możesz zdefiniować <code>sudo</code> jako nazwę programu oraz <code>'+subcmd+
+                    '</code> jako pierwszy argument komendy ustawiony na typ tekstowy i z wymaganiem określonego położenia.</p><hr>'
+            }
+            output+=`<h6>Potencjalne podpowiedzi dotyczące komendy:</h6><ul>
                 <li><strong>Program</strong> &ndash; <code>${escapeHtml(ret['command'])}</code></li>
                 <li><strong>Opcje</strong> (flagi bez parametru): ${options}</li>
                 <li><strong>Flagi z parametrami</strong>: ${params}</li>
                 <li><strong>Argumenty tekstowe</strong> (wraz z numeracją ich położenia): ${texts}</li>
                 </ul>
-                Pamiętaj, że część z punktów podanych powyżej wyklucza się nawzajem &ndash; np. <code>-p az</code> może być zinterpretowane albo jako opcja <code>p</code> + argument tekstowy <code>az</code>, albo jako flaga z parametrem. Skorzystaj z dokumentacji programu/komendy, by upewnić się jaka konfiguracja będzie odpowiednia`
+                Pamiętaj, że część z punktów podanych powyżej wyklucza się nawzajem &ndash; np. <code>-p az</code> może być zinterpretowane albo jako opcja&nbsp;<code>p</code>&nbsp;+&nbsp;argument tekstowy <code>az</code>, albo jako flaga z parametrem. Skorzystaj z dokumentacji programu/komendy, by upewnić się jaka konfiguracja będzie odpowiednia`
+
+            testcmdout.style.display=''
+            testcmdout.innerHTML=output
         }
     </script>
     <div class="alert alert-warning">TODO: Dodawanie zadań</div>
     <h1>Utwórz zadanie</h1>
-    <noscript>
-        <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
-    </noscript>
+    <div id="alertplace">
+        <noscript>
+            <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
+        </noscript>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
     <div class="form-floating mb-3">
         <input type="text" id="q" class="form-control" placeholder="Polecenie" required>
         <label for="q">Polecenie</label>
@@ -331,7 +378,8 @@
         </div>
     </div>
     <div id="atype_command" style="display: none;">
-        <form method="dialog" class="input-group">
+        <label for="testcmdin" class="form-label">Wpisz tutaj komendę, by rozłożyć ją na czynnyki pierwsze</label>
+        <form method="dialog" class="input-group mb-3">
             <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
             <input type="text" id="testcmdin" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
             <button class="btn btn-dark" onclick="testcmd()">Przeparsuj</button>
@@ -340,16 +388,19 @@
         <h3>Odpowiedzi</h3>
         <div class="card" name="command_answer">
             <div class="card-header">
-                <div class="form-floating">
-                    <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda" required>
-                    <label for="command_command{}">Program</label>
+                <div class="row">
+                    <div class="col">
+                        <label for="command_command{}" class="form-label">Nazwa programu</label>
+                        <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda" required>
+                    </div>
+                    <div class="col">
+                        <label for="command_type{}" class="form-label">Typ komendy</label>
+                        <select name="type" class="form-select" id="command_type{}" onchange="switch_cmdtype(this)">
+                            <option value="posix" selected>POSIX</option>
+                            <option value="dd">dd</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <select name="type" class="form-select" onchange="switch_cmdtype(this)">
-                    <option value="posix" selected>POSIX</option>
-                    <option value="dd">dd</option>
-                </select>
             </div>
             <div class="list-group list-group-flush" id="command_type_posix{}">
                 <div>
@@ -374,7 +425,7 @@
             <div>
                 <div class="list-group-item">
                     <div class="input-group">
-                        <input type="text" name="abc_answer" class="form-control">
+                        <input type="text" name="abc_answer" class="form-control" required>
                         <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
@@ -386,7 +437,7 @@
             <div>
                 <div class="list-group-item">
                     <div class="input-group">
-                        <input type="text" name="abc_mock" class="form-control">
+                        <input type="text" name="abc_mock" class="form-control" required>
                         <button class="btn btn-outline-danger" onclick="remitem(this.parentElement.parentElement)"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
