@@ -30,6 +30,10 @@ if mongo.db.categories.count_documents({}, limit=1)==0:
 def render_template(template_name_or_list, **context) -> str:
     return render_template_orig(template_name_or_list, admin=session.get('pass')==admin_passhash, **context)
 
+@app.route('/')
+def home_page():
+    return render_template('index.html')
+
 @app.route('/quiz', methods=["POST", "GET"])
 def startquiz():
     if request.method == 'POST':
