@@ -214,6 +214,46 @@
           "value": "isc-dhcp-server"
         }
       ]
+    },
+    {
+      "command": "apt-get",
+      "type": "posix",
+      "args": [
+        {
+          "argtype": "text",
+          "value": "install",
+          "pos": 0
+        },
+        {
+          "argtype": "text",
+          "value": "isc-dhcp-server"
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67f40d87b0f07726134ffbca"
+  },
+  "q": "Wyświetl wszystkie pliki (także ukryte!) znajdujące się w folderze <code>/srv</code>",
+  "category": "general",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "ls",
+      "type": "posix",
+      "args": [
+        {
+          "argtype": "option",
+          "name": "all",
+          "shname": "a"
+        },
+        {
+          "argtype": "text",
+          "value": "/srv"
+        }
+      ]
     }
   ]
 }]

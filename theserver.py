@@ -222,6 +222,19 @@ def admin_categories():
         flash("Pomyślnie zapisano zmiany", 'alert-success')
     return render_template('admin/categories.html', categories=mongo.db.categories.find())
 
+@app.route('/admin/tasklist', methods=["POST", "GET"])
+@adminaccess
+def admin_tasklist():
+    if request.method=='POST':
+        if request.form['action']=="delete":
+            mongo.db.tasks.delete_one({"_id":ObjectId(request.form['task_id'])})
+            flash(f'Pomyślnie usunięto zadanie o poleceniu "{request.form['q']}"', 'alert-success')
+        elif request.form['action']=='mod':
+            mongo.db.get_collection("").update_one({"_id":ObjectId(request.form['task_id'])},{"$set":{"q":request.form['q'], 'category':request.form['category']}})
+            flash(f'Pomyślnie zmodyfikowano zadanie "{request.form['q']}"', 'alert-success')
+
+    return render_template('admin/tasklist.html', categories=list(mongo.db.categories.find()), tasks=mongo.db.tasks.find(), cmd2str=cmdparse.cmd2str)
+
 @app.route("/admin/<path:_>")
 @adminaccess
 def admin_nonexist(_):

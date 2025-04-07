@@ -4,3 +4,4 @@
 - [ ] educative section (may be useless, we have Arch Wiki for a reason)
 - [ ] better title screen (I don't have any idea tbh, maybe seek for help)
 - [ ] full posibilities of modifying tasks
+- [ ] any kind of design language in the admin panel index....

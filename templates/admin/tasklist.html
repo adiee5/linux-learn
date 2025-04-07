@@ -1,0 +1,122 @@
+{% extends "master.html" %}
+
+{% block title %}Zarządzaj kategoriami{% endblock title %}
+
+{% block main %}
+    <h1 class="text-center">Kategorie</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+    <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <noscript>
+        <div class="alert alert-warning">Żeby korzystać z tej strony, potrzebny jest JavaScript</div>
+    </noscript>
+    <p>Na tej stronie możesz przeglądać jakie są zadania a także zmieniać treść polecenia i kategorię zadania. Nie można niestety zmieniać odpowiedzi na zadania &ndash; to trzeba robić z poziomu bazy danych</p>
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Polecenie</th>
+            <th scope="col">Kategoria</th>
+            <th scope="col">Typ zadania</th>
+            <th scope="col">Odpowiedzi</th>
+            <th scope="col">Akcje</th>
+        </tr>
+    </thead>
+    <tbody id="cattable">
+        {% for task in tasks %}
+            <tr>
+                <form action="{{url_for('admin_tasklist')}}" method="post">
+                    <td><textarea name="q" placeholder="Polecenie" class="form-control" title="Polecenie">{{task['q']}}</textarea></td>
+                    <td>
+                        <select name="category" title="Kategoria" class="form-select">
+                            {% for cat in categories %}
+                                <option value="{{cat['name']}}"{% if cat["name"]==task['category'] %} selected{% endif %}>{{cat['display']}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td title="Typ zadania">
+                        {% if task['atype']=='abc' %}
+                            Pytanie ABC
+                        {% elif task['atype']=='command' %}
+                            Komenda
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Dropdown button
+                        </button>
+                        <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">Odpowiedzi</h6></li>
+                            {% for a in task['answer'] %}
+                                <li>
+                                    {% if task['atype']=="abc" %}
+                                    <div class="dropdown-item">{{a}}</div>
+                                    {% elif task['atype']=='command' %}
+                                    <div class="dropdown-item"><code>{{cmd2str(a)}}</code></div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            {% if task['atype']=="abc" %}
+                                <hr class="dropdown-divider">
+                                <li><h6 class="dropdown-header">Fałszywe Odpowiedzi</h6></li>
+                                {% for a in task['mock'] %}
+                                <li><div class="dropdown-item">{{a}}</div></li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="hidden" name="task_id" value="{{task['_id']}}">
+                        <input type="hidden" name="action" value="mod">
+                        <button class="btn btn-outline-success">Zapisz zmainy</button>
+                        <button class="btn btn-outline-danger" onclick="deltask(this)">Usuń</button>
+                    </td>
+                </form>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    <script>
+        var delete_them=[]
+        var cattable=document.getElementById('cattable')
+        function deltask(az) {
+            event.preventDefault()
+            let task=az
+            while (task.tagName!='TR'){
+                task=task.parentElement
+            }
+            post=task.children[0]
+            if (post.tagName!='FORM'){
+                alert('Wystąpił błąd po stronie JavaScriptu. Prosimy zgłosić pojawienie się tego komunikatu na githubie')
+                return
+            }
+            if (confirm("Napewno chcesz usunąć to zadanie? Tej operacji nie da się cofnąć!!!\n\nPolecenie zadania:\n\n"+task.querySelector('[name="q"]').value)){
+                task.querySelector('[name="action"]').value="delete"
+                post.submit()
+            }
+        }
+        function save(){
+            let form=document.getElementById('postform')
+            let data=[]
+            for(row of cattable.children){
+                let j={}
+                j['name']=row.querySelector('[name="name"]').value
+                j['display']=row.querySelector('[name="display"]').value
+
+                if ( ['', null, undefined].includes(j['name']) || ['', null, undefined].includes(j['display'])){
+                    cattable.classList.add('was-validated')
+                    return
+                }
+                data.push(j)
+            }
+            form[0].value=JSON.stringify(data)
+            form[1].value=JSON.stringify(delete_them)
+            form.submit()
+        }
+    </script>
+{% endblock main %}

@@ -4,9 +4,17 @@
 
 {% block main %}
     <!--Tu w zamyśle administrator ma do wyboru różne akcje-->
-    <div class="alert alert-warning">TODO: Panel administracyjny</div>
+    <h1 class="text-center mb-5">Panel Administracyjny</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+    <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
     <div class="row">
         <div class="col text-center"><a href="{{url_for('admin_addcmd')}}" class="btn btn-primary">Dodaj zadanie</a></div>
+        <div class="col text-center"><a href="{{url_for('admin_tasklist')}}" class="btn btn-primary">Lista zadań</a></div>
         <div class="col text-center"><a href="{{url_for('admin_categories')}}" class="btn btn-primary">Zarządzaj kategoriami</a></div>
     </div>
     
