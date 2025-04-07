@@ -194,7 +194,22 @@ def admin_addcmd():
         return redirect(url_for("admin_panel"))
     if request.method!='POST':
         return render_template('admin/addcmd.html', categories=mongo.db.categories.find())
-    return json.loads(request.form["result"])
+    
+    result=None
+    try:
+        result=json.loads(request.form["result"])
+    except:
+        abort(400)
+
+    # result validation could've been more thorough (especially since this gets inputed directly into the DB!),
+    # but I decided not to - That's already done by JS and the only way to send data (besides the form) is to use curl and alike.
+    # Besides, the resource is only available to the service admin and it's rather unlikely, that the service admin would like to break their own DB
+    if type(result)!=dict or type(result.get('q'))!=str or type(result.get('category'))!=str or type(result.get('atype'))!=str or type(result.get('answer'))!=list:
+        abort(400)
+    
+    mongo.db.tasks.insert_one(result)
+    flash(f'Pomyślnie dodano zadanie "{result['q']}"', 'alert-success')
+    return redirect(url_for('admin_panel'))
 
 @app.route('/admin/categories', methods=["POST", "GET"])
 @adminaccess
@@ -230,6 +245,19 @@ def api_cmd2str():
         abort(400)
     return cmdparse.cmd2str(command)
 
+@app.route("/api/checkcmd", methods=["POST"])
+def api_checkcmd():
+    command=request.form['command']
+    command=list(shlex.shlex(command, None, True, True))
+    answers=None
+    try:
+        answers=json.loads(request.form['answers'])
+    except:
+        abort(400)
+    if type(answers)!=list:
+        abort(400)
+
+    return json.dumps(cmdparse.checkcmd(command, answers))
 
 @app.route('/resources')
 def resourcespage():

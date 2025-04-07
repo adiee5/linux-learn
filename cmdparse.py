@@ -57,6 +57,9 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                             try:
                                 if 'shname' in arg.keys():
                                     options["short"].remove(arg['shname'])
+                            except ValueError:
+                                pass
+                            try:
                                 options['long'].remove(arg['name'].lower())
                             except ValueError:
                                 pass
@@ -73,6 +76,9 @@ def checkcmd(command:list[str], answers:list[dict])-> bool:
                                 try:
                                     if 'shname' in arg.keys():
                                         options["short"].remove(arg['shname'])
+                                except ValueError:
+                                    pass
+                                try:
                                     options['long'].remove(arg['name'].lower())
                                 except ValueError:
                                     pass

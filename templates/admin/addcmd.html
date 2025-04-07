@@ -63,7 +63,7 @@
                 q.parentElement.classList.add('was-validated')
                 return
             }
-            result=document.getElementById('result')
+            let result=document.getElementById('result')
             let answer=[]
             let mock=[]
             for(i of document.getElementsByName('abc_answer')){
@@ -105,10 +105,47 @@
             result.parentElement.submit()
         }
 
-        command_count=0
-        arg_count=0
-        function add_command(az){
-
+        var command_count=0
+        var arg_count=0
+        function add_command(){
+            let neu = document.createElement('template')
+            neu.innerHTML=`<div class="card mb-3" name="command_answer">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col">
+                                <label for="command_command${command_count}" class="form-label">Nazwa programu</label>
+                                <input type="text" id="command_command${command_count}" name="command" class="form-control" placeholder="Komenda" required>
+                            </div>
+                            <div class="col">
+                                <label for="command_type${command_count}" class="form-label">Typ komendy</label>
+                                <select name="type" class="form-select" id="command_type${command_count}" onchange="switch_cmdtype(this)">
+                                    <option value="posix" selected>POSIX</option>
+                                    <option value="dd">dd</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button onclick="remitem(this.parentElement.parentElement.parentElement.parentElement)" class="btn btn-danger align-middle"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group list-group-flush" id="command_type_posix${command_count}">
+                        <div>
+                        </div>
+                        <button onclick="add_posixarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Agrument</button>
+                    </div>
+                    <div class="card-body" id="command_type_dd${command_count}" style="display: none;">
+                        <div class="row row-cols-md-3 row-cols-sm-2 row-cols-1 g-3">
+                            <div class="col"><button onclick="add_ddarg(this)" class="btn btn-primary" style="width: 100%;">Dodaj Argument</button></div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-auto"><button class="btn btn-secondary" onclick="display(this)">Podgląd</button></div> 
+                            <div class="col"><input type="text" class="form-control text-bg-dark font-monospace" readonly></div></div>
+                    </div>
+                </div>`
+            document.getElementById('commandplace').appendChild(neu.content)
+            command_count+=1
         }
         function add_posixarg(az) {
             let neu = document.createElement('template')
@@ -252,8 +289,41 @@
             az.classList.remove('was-validated')
             return cmd
         }
-
-
+        function sendcommand(){
+            let q = document.getElementById('q')
+            if (q.value===null || q.value===undefined || q.value.trim() === ''){
+                q.scrollIntoView({'block':'center'})
+                q.value=''
+                q.parentElement.classList.add('was-validated')
+                return
+            }
+            let result=document.getElementById('result')
+            let answer=[]
+            for(i of document.getElementsByName('command_answer')){
+                let cmd = html2cmd(i)
+                if (cmd===false) return
+                answer.push(cmd)
+            }
+            if(answer.length===0){
+                let neu=document.createElement('template')
+                neu.innerHTML=`<div class="alert alert-danger alert-dismissible" role="alert">
+                        <div>
+                            Nie podano żadnych odpowiedzi!
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`
+                document.getElementById('alertplace').appendChild(neu.content)
+                return
+            }
+            result.value=JSON.stringify({
+                'q':q.value.trim(),
+                'category':document.getElementById('category').value.trim(),
+                'atype':atype,
+                'answer':answer
+            })
+            if(!confirm('Napewno chcesz już dodać to zadanie do bazy? Pamiętaj, że po wysłaniu zadania, będzie można je w tej wersji Linux-Lingo edytować jedynie z poziomu bazy danych! (Choć kategorię i polecenie zadania można edytować z panelu administracyjnego w razie czego)')) return
+            result.parentElement.submit()
+        }
 
         function moveUp(element){
             let upperSibling = element.previousElementSibling
@@ -339,6 +409,46 @@
             testcmdout.style.display=''
             testcmdout.innerHTML=output
         }
+        var checkcmdin
+        var checkcmdout
+        async function checkcmd(){
+            if( checkcmdin === undefined){
+                checkcmdin=document.getElementById("checkcmdin")
+                checkcmdout=document.getElementById("checkcmdout")
+            }
+            let answers=[]
+            for(i of document.getElementsByName('command_answer')){
+                let cmd = html2cmd(i)
+                if (cmd===false) return
+                answers.push(cmd)
+            }
+            let ret=await fetch("{{url_for('api_checkcmd')}}", {
+                method: "POST",
+                body: `command=${encodeURIComponent(checkcmdin.value)}&answers=${encodeURIComponent(JSON.stringify(answers))}`,
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                }
+            }).then((response) => response.json());
+
+            let neu=document.createElement('template')
+            if(ret){
+                neu.innerHTML=`<div class="alert alert-success alert-dismissible" role="alert">
+                        <div>
+                            Jest to poprawna odowiedź wg schematu
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`
+            }
+            else{
+                neu.innerHTML=`<div class="alert alert-danger alert-dismissible" role="alert">
+                        <div>
+                            Jest to odpowiedź błędna. Jeśli miała to być poprawna odpowiedź, musisz jeszcze raz przeredagować swój schemat by poszukać w nim niedopatrzeń
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`
+            }
+            checkcmdout.prepend(neu.content)
+        }
     </script>
     <div class="alert alert-warning">TODO: Dodawanie zadań</div>
     <h1>Utwórz zadanie</h1>
@@ -386,38 +496,17 @@
         </form>
         <div class="alert alert-info" id="testcmdout" style="display: none;"></div>
         <h3>Odpowiedzi</h3>
-        <div class="card" name="command_answer">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col">
-                        <label for="command_command{}" class="form-label">Nazwa programu</label>
-                        <input type="text" id="command_command{}" name="command" class="form-control" placeholder="Komenda" required>
-                    </div>
-                    <div class="col">
-                        <label for="command_type{}" class="form-label">Typ komendy</label>
-                        <select name="type" class="form-select" id="command_type{}" onchange="switch_cmdtype(this)">
-                            <option value="posix" selected>POSIX</option>
-                            <option value="dd">dd</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="list-group list-group-flush" id="command_type_posix{}">
-                <div>
-                </div>
-                <button onclick="add_posixarg(this)" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Agrument</button>
-            </div>
-            <div class="card-body" id="command_type_dd{}" style="display: none;">
-                <div class="row row-cols-md-3 row-cols-sm-2 row-cols-1 g-3">
-                    <div class="col"><button onclick="add_ddarg(this)" class="btn btn-primary" style="width: 100%;">Dodaj Argument</button></div>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="row">
-                    <div class="col-auto"><button class="btn btn-secondary" onclick="display(this)">Podgląd</button></div> 
-                    <div class="col"><input type="text" class="form-control text-bg-dark font-monospace" readonly></div></div>
-            </div>
+        <div id="commandplace">
         </div>
+        <div class="d-grid mb-3"><button class="btn btn-primary" onclick="add_command()">Dodaj Odpowiedź</button></div>
+        <label for="checkcmdin" class="form-label">Przetestuj, czy schematy powyżej działają prawidłowo</label>
+        <form method="dialog" class="input-group mb-3">
+            <span class="input-group-text text-bg-dark border-dark font-monospace">$</span>
+            <input type="text" id="checkcmdin" class="form-control text-bg-dark font-monospace border-dark" autocomplete="off">
+            <button class="btn btn-dark" onclick="checkcmd()">Przetestuj</button>
+        </form>
+        <div id="checkcmdout"></div>
+        <div class="d-grid mb-3"><button class="btn btn-success" onclick="sendcommand()">Dodaj zadanie</button></div>
     </div>
     <div id="atype_abc" style="display: none;">
         <div class="list-group mb-3">
@@ -444,7 +533,7 @@
             </div>
             <button onclick="add_text_item(this, 'abc_mock')" class="list-group-item list-group-item-action list-group-item-primary">Dodaj Odpowiedź</button>
         </div>
-        <button onclick="sendabc()" class="btn btn-primary">Dodaj</button>
+        <button onclick="sendabc()" class="btn btn-success">Dodaj zadanie</button>
     </div>
         
     <form action="{{url_for('admin_addcmd')}}" method="post">
