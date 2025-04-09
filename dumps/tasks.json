@@ -266,18 +266,18 @@
   "atype": "command",
   "answer": [
     {
-      "command": "iptable",
+      "command": "iptables",
       "type": "posix",
       "args": [
         {
           "argtype": "param",
-          "name": "dsfldjflsjflksdjfkljsdlf",
+          "name": "append",
           "shname": "A",
           "value": "INPUT"
         },
         {
           "argtype": "param",
-          "name": "fdfgdfgdfgdfgdfgdfg",
+          "name": "protocol",
           "shname": "p",
           "value": "tcp"
         },
@@ -289,7 +289,7 @@
         },
         {
           "argtype": "param",
-          "name": "sfdfsdfsdfsfdsfsdfsdf",
+          "name": "jump",
           "shname": "j",
           "value": "DROP"
         }
