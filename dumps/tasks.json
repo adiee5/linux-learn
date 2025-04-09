@@ -256,4 +256,44 @@
       ]
     }
   ]
+},
+{
+  "_id": {
+    "$oid": "67f612ecab59ba064fb067f1"
+  },
+  "q": "Zablokuj za pomocą zapory <code>iptable</code> port usługi http",
+  "category": "server",
+  "atype": "command",
+  "answer": [
+    {
+      "command": "iptable",
+      "type": "posix",
+      "args": [
+        {
+          "argtype": "param",
+          "name": "dsfldjflsjflksdjfkljsdlf",
+          "shname": "A",
+          "value": "INPUT"
+        },
+        {
+          "argtype": "param",
+          "name": "fdfgdfgdfgdfgdfgdfg",
+          "shname": "p",
+          "value": "tcp"
+        },
+        {
+          "argtype": "param",
+          "name": "destination-port",
+          "shname": "d",
+          "value": "80"
+        },
+        {
+          "argtype": "param",
+          "name": "sfdfsdfsdfsfdsfsdfsdf",
+          "shname": "j",
+          "value": "DROP"
+        }
+      ]
+    }
+  ]
 }]
